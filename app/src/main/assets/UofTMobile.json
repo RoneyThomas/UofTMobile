@@ -1,0 +1,362 @@
+{
+    "disabledFeatures": [
+        "map"
+    ],
+
+    "supportedBuilds": [
+        0,
+        1,
+        2
+    ],
+
+    "sections": [
+        {
+            "index": 0,
+            "name": "Default Set"
+        },
+        {
+            "index": 1,
+            "name": "Learning"
+        },
+        {
+            "index": 2,
+            "name": "News and Events"
+        },
+        {
+            "index": 3,
+            "name": "Student Life and Athletics"
+        },
+        {
+            "index": 4,
+            "name": "Tools"
+        },
+        {
+            "index": 5,
+            "name": "Social"
+        }
+    ],
+
+    "mandatoryApps": [
+        "maps", "continuity", "SystemStatus"
+    ],
+
+    "apps": [
+        {
+            "name": "Academic Continuity",
+            "id": "continuity",
+            "sectionIndex": 0,
+            "url": "https://teaching.utoronto.ca/teaching-support/strategies/continuity-planning/",
+            "opensInApp": true,
+            "imageLocalName": "portal",
+            "imageURL": ""
+        },
+        {
+            "name": "Quercus",
+            "id": "portal",
+            "sectionIndex": 1,
+            "url2": "wallet://utoronto.instructure.com",
+            "url": "canvas-courses://utoronto.instructure.com",
+            "opensInApp": true,
+            "imageLocalName": "portal",
+            "imageURL": ""
+        },
+        {
+            "name": "Library",
+            "id": "library",
+            "sectionIndex": 1,
+            "url": "https://library.utoronto.ca",
+            "opensInApp": true,
+            "imageLocalName": "library",
+            "imageURL": ""
+        },
+        {
+            "name": "UofT",
+            "id": "newsuoft",
+            "sectionIndex": 2,
+            "url": "https://www.utoronto.ca/news",
+            "opensInApp": true,
+            "imageLocalName": "news",
+            "imageURL": ""
+        },
+        {
+            "name": "UTM",
+            "id": "newsutm",
+            "sectionIndex": 2,
+            "url": "https://www.utm.utoronto.ca/main-news",
+            "opensInApp": true,
+            "imageLocalName": "news",
+            "imageURL": ""
+        },
+        {
+            "name": "UTSC",
+            "id": "newsutsc",
+            "sectionIndex": 2,
+            "url": "https://utsc.utoronto.ca/news-events/articles",
+            "opensInApp": true,
+            "imageLocalName": "news",
+            "imageURL": ""
+        },
+        {
+            "name": "Arts & Science",
+            "id": "newsartssci",
+            "sectionIndex": 2,
+            "url": "https://www.artsci.utoronto.ca/news",
+            "opensInApp": true,
+            "imageLocalName": "news",
+            "imageURL": ""
+        },
+        {
+            "name": "Eng.",
+            "id": "newseng",
+            "sectionIndex": 2,
+            "urlOld": "href=micro-apps/news/newsfeed-engi.html",
+            "url": "micro-apps/news.engineering.utoronto.ca/feed/",
+            "opensInApp": true,
+            "imageLocalName": "news",
+            "imageURL": ""
+        },
+        {
+            "name": "UofT Events",
+            "id": "events",
+            "sectionIndex": 2,
+            "url": "https://www.utoronto.ca/events",
+            "opensInApp": true,
+            "imageLocalName": "events",
+            "imageURL": ""
+        },
+        {
+            "name": "Important Dates",
+            "id": "dates",
+            "sectionIndex": 2,
+            "url": "https://www.future.utoronto.ca/newly-admitted-students/important-dates",
+            "opensInApp": true,
+            "imageLocalName": "dates",
+            "imageURL": ""
+        },
+        {
+            "name": "UofT Magazine",
+            "id": "uoftmagazine",
+            "sectionIndex": 2,
+            "url": "https://magazine.utoronto.ca/",
+            "opensInApp": true,
+            "imageLocalName": "magazine",
+            "imageURL": ""
+        },
+        {
+            "name": "Edge Magazine",
+            "id": "edgemagazine",
+            "sectionIndex": 2,
+            "url": "https://research.utoronto.ca/edge",
+            "opensInApp": true,
+            "imageLocalName": "magazine",
+            "imageURL": ""
+        },
+        {
+            "name": "President's Blog",
+            "id": "presblogs",
+            "sectionIndex": 3,
+            "url": "https://www.president.utoronto.ca/important-messages/",
+            "opensInApp": true,
+            "imageLocalName": "blogs",
+            "imageURL": ""
+        },
+        {
+            "name": "Grad Life Blog",
+            "id": "gradlifeblogs",
+            "sectionIndex": 3,
+            "url": "https://blogs.studentlife.utoronto.ca/gradlife/",
+            "opensInApp": true,
+            "imageLocalName": "blogs",
+            "imageURL": ""
+        },
+        {
+            "name": "Ulife",
+            "id": "ulife",
+            "sectionIndex": 3,
+            "url": "https://www.ulife.utoronto.ca",
+            "opensInApp": true,
+            "imageLocalName": "ulife",
+            "imageURL": ""
+        },
+        {
+            "name": "Varsity Blues",
+            "id": "blues",
+            "sectionIndex": 3,
+            "url": "https://varsityblues.ca",
+            "opensInApp": true,
+            "imageLocalName": "ulife",
+            "imageURL": ""
+        },
+        {
+            "name": "Maps",
+            "id": "maps",
+            "sectionIndex": 0,
+            "url": "https://www.utoronto.ca/campuses/maps.htm",
+            "opensInApp": true,
+            "imageLocalName": "maps",
+            "imageURL": ""
+        },
+        {
+            "name": "Tours",
+            "id": "tours",
+            "sectionIndex": 4,
+            "url": "https://www.future.utoronto.ca/visit/campus-tours",
+            "opensInApp": true,
+            "imageLocalName": "tours",
+            "imageURL": ""
+        },
+        {
+            "name": "System Status",
+            "id": "SystemStatus",
+            "sectionIndex": 0,
+            "url": "https://www.systemstatus.utoronto.ca/",
+            "opensInApp": true,
+            "imageLocalName": "SystemStatus",
+            "imageURL": ""
+        },
+        {
+            "name": "Email",
+            "id": "email",
+            "sectionIndex": 4,
+            "url": "https://mail.utoronto.ca",
+            "opensInApp": true,
+            "imageLocalName": "email",
+            "imageURL": ""
+        },
+        {
+            "name": "UofT",
+            "id": "facebookuoft",
+            "sectionIndex": 5,
+            "url": "https://www.facebook.com/universitytoronto",
+            "opensInApp": true,
+            "imageLocalName": "facebook",
+            "imageURL": ""
+        },
+        {
+            "name": "UofT",
+            "id": "twitteruoft",
+            "sectionIndex": 5,
+            "url": "https://twitter.com/UofTNews",
+            "opensInApp": true,
+            "imageLocalName": "twitter",
+            "imageURL": ""
+        },
+        {
+            "name": "UofT",
+            "id": "youtubeuoft",
+            "sectionIndex": 5,
+            "url": "https://www.youtube.com/universitytoronto",
+            "opensInApp": true,
+            "imageLocalName": "youtube",
+            "imageURL": ""
+        },
+        {
+            "name": "UTM",
+            "id": "facebookutm",
+            "sectionIndex": 5,
+            "url": "https://www.facebook.com/UTMississauga",
+            "opensInApp": true,
+            "imageLocalName": "facebook",
+            "imageURL": ""
+        },
+        {
+            "name": "UTM",
+            "id": "twitterutm",
+            "sectionIndex": 5,
+            "url": "https://twitter.com/UTM",
+            "opensInApp": true,
+            "imageLocalName": "twitter",
+            "imageURL": ""
+        },
+        {
+            "name": "UTM",
+            "id": "youtubeutm",
+            "sectionIndex": 5,
+            "url": "https://www.youtube.com/user/UTMississauga",
+            "opensInApp": true,
+            "imageLocalName": "youtube",
+            "imageURL": ""
+        },
+        {
+            "name": "UTSC",
+            "id": "facebookutsc",
+            "sectionIndex": 5,
+            "url": "https://www.facebook.com/UofTScarborough/",
+            "opensInApp": true,
+            "imageLocalName": "facebook",
+            "imageURL": ""
+        },
+        {
+            "name": "UTSC",
+            "id": "twitterutsc",
+            "sectionIndex": 5,
+            "url": "https://twitter.com/utsc",
+            "opensInApp": true,
+            "imageLocalName": "twitter",
+            "imageURL": ""
+        },
+        {
+            "name": "UTSC",
+            "id": "youtubeutsc",
+            "sectionIndex": 5,
+            "url": "https://www.youtube.com/user/uoftscarborough#p/p",
+            "opensInApp": true,
+            "imageLocalName": "youtube",
+            "imageURL": ""
+        },
+        {
+            "name": "UofT",
+            "id": "linkedinuoft",
+            "sectionIndex": 5,
+            "url": "https://www.linkedin.com/company/university-of-toronto",
+            "opensInApp": true,
+            "imageLocalName": "linkedin",
+            "imageURL": ""
+        },
+        {
+            "name": "UofT",
+            "id": "instagramuoft",
+            "sectionIndex": 5,
+            "url": "https://instagram.com/uoft",
+            "opensInApp": true,
+            "imageLocalName": "instagram",
+            "imageURL": ""
+        },
+        {
+            "name": "Eng.",
+            "id": "instagrameng",
+            "sectionIndex": 5,
+            "url": "https://instagram.com/uoftengineering",
+            "opensInApp": true,
+            "imageLocalName": "instagram",
+            "imageURL": ""
+        },
+        {
+            "name": "Eng.",
+            "id": "facebookeng",
+            "sectionIndex": 5,
+            "url": "https://www.facebook.com/uoftengineering",
+            "opensInApp": true,
+            "imageLocalName": "facebook",
+            "imageURL": ""
+        },
+        {
+            "name": "Eng.",
+            "id": "twittereng",
+            "sectionIndex": 5,
+            "url": "https://twitter.com/uoftengineering",
+            "opensInApp": true,
+            "imageLocalName": "twitter",
+            "imageURL": ""
+        },
+        {
+            "name": "Eng.",
+            "id": "youtubeeng",
+            "sectionIndex": 5,
+            "url": "https://www.youtube.com/uofteng",
+            "opensInApp": true,
+            "imageLocalName": "youtube",
+            "imageURL": ""
+        }
+    ]
+}
