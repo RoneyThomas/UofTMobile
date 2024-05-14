@@ -4,20 +4,22 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,16 +40,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ca.utoronto.megaapp.data.repository.UofTMobileRepository
+import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import com.example.compose.UofTMobileTheme
 import kotlinx.coroutines.launch
@@ -71,6 +73,7 @@ fun CenterAlignedTopAppBarExample() {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
+    val list = (1..8).map { it.toString() }
 
     val navItemColor = NavigationBarItemDefaults.colors(
         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -115,40 +118,59 @@ fun CenterAlignedTopAppBarExample() {
                     onClick = { selectedItem = 1 })
             }
         }) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxHeight()
+                .background(color = Color(0xFFD0D1CB))
         ) {
-            val list = (1..10).map { it.toString() }
-
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(128.dp),
-
+                columns = GridCells.Adaptive(80.dp),
+                Modifier.zIndex(1f),
                 // content padding
                 contentPadding = PaddingValues(
-                    start = 12.dp,
-                    top = 16.dp,
-                    end = 12.dp,
-                    bottom = 16.dp
+                    start = 8.dp,
+                    top = 12.dp,
+                    end = 8.dp,
+                    bottom = 12.dp
                 ),
                 content = {
                     items(list.size) { index ->
-                        Card(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth()
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            Box(
+                                Modifier
+                                    .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                    .size(64.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.primary,
+                                        RoundedCornerShape(4.dp)
+                                    ), contentAlignment = Alignment.Center
+                            ) {
+                                AsyncImage(
+                                    model = R.drawable.portal,
+                                    contentDescription = "University of Toronto Logo",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.height(48.dp)
+                                )
+                            }
                             Text(
                                 text = list[index],
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 30.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(16.dp)
+                                fontSize = 17.sp,
+                                color = Color.Black,
+//                                modifier = Modifier.padding(16.dp)
                             )
                         }
                     }
                 }
             )
+
+            AsyncImage(model = R.drawable.background, contentDescription = "UofT Logo", modifier = Modifier.align(Alignment.Center).height(256.dp))
+
+
             if (showBottomSheet) {
                 ModalBottomSheet(
                     onDismissRequest = {
@@ -178,6 +200,8 @@ fun CenterAlignedTopAppBarExample() {
                 }
             }
         }
+
+
     }
 }
 

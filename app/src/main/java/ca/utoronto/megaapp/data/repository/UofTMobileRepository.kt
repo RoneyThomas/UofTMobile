@@ -16,7 +16,6 @@ import java.net.UnknownHostException
 
 class UofTMobileRepository() {
 
-
     private val tag: String = "SitesRepository"
     private val client = OkHttpClient()
     private lateinit var result: MutableLiveData<UofTMobile>
