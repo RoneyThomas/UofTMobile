@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -32,13 +33,16 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,13 +55,18 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.MutableLiveData
+import ca.utoronto.megaapp.data.entities.UofTMobile
+import ca.utoronto.megaapp.data.repository.UofTMobileRepository
 import coil.compose.AsyncImage
 import com.example.compose.UofTMobileTheme
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 
 class MainActivity : ComponentActivity() {
@@ -66,7 +75,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             UofTMobileTheme {
-                CenterAlignedTopAppBarExample()
+                CenterAlignedTopAppBarExample(UofTMobileRepository().getResult())
             }
         }
     }
@@ -74,13 +83,21 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CenterAlignedTopAppBarExample() {
+fun CenterAlignedTopAppBarExample(result: MutableLiveData<UofTMobile>) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     val list = (1..8).map { it.toString() }
     val context = LocalContext.current
+    val jsonResponse: State<UofTMobile?> = result.observeAsState(
+        initial = Json.decodeFromString(
+            context.assets.open("UofTMobile.json").bufferedReader()
+                .use { it.readText() }) as UofTMobile
+    )
+    var mandaotryApps = jsonResponse.value?.mandatoryApps?.toSet()
+//    var urlToDisplay = jsonResponse.value?.apps?.filter { it.id in mandaotryApps }
+
 
     val navItemColor = NavigationBarItemDefaults.colors(
         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -90,7 +107,6 @@ fun CenterAlignedTopAppBarExample() {
         unselectedTextColor = Color.White,
     )
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -105,7 +121,7 @@ fun CenterAlignedTopAppBarExample() {
                         modifier = Modifier.height(48.dp)
                     )
                 },
-                scrollBehavior = scrollBehavior,
+//                scrollBehavior = scrollBehavior,
             )
         }, bottomBar = {
             var selectedItem by remember { mutableIntStateOf(0) }
@@ -131,6 +147,7 @@ fun CenterAlignedTopAppBarExample() {
                 .fillMaxHeight()
                 .background(color = Color(0xFFD0D1CB))
         ) {
+
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(80.dp),
                 Modifier.zIndex(1f),
@@ -142,45 +159,55 @@ fun CenterAlignedTopAppBarExample() {
                     bottom = 12.dp
                 ),
                 content = {
-                    items(list.size) { index ->
-                        Column(
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable {
-                                Log.d("MainActivity", "CenterAlignedTopAppBarExample: I am clicked")
-                                val url = "https://developers.android.com"
-                                val intent = CustomTabsIntent.Builder()
-                                    .build()
-                                intent.launchUrl(context, Uri.parse(url))
-                            }
-                        ) {
-                            Box(
-                                Modifier
-                                    .padding(16.dp, 16.dp, 16.dp, 8.dp)
-                                    .size(64.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.primary,
-                                        RoundedCornerShape(8.dp)
-                                    ), contentAlignment = Alignment.Center
+                    jsonResponse.value?.apps?.size?.let { it ->
+                        items(it) {
+                            Column(
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.clickable {
+                                    Log.d(
+                                        "MainActivity",
+                                        "CenterAlignedTopAppBarExample: I am clicked"
+                                    )
+                                    val url = jsonResponse.value?.apps!![it].url
+                                    val intent = CustomTabsIntent.Builder()
+                                        .build()
+                                    intent.launchUrl(context, Uri.parse(url))
+                                }
                             ) {
-                                AsyncImage(
-                                    model = R.drawable.portal,
-                                    contentDescription = "University of Toronto Logo",
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.height(48.dp)
+                                Box(
+                                    Modifier
+                                        .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                        .size(64.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.primary,
+                                            RoundedCornerShape(8.dp)
+                                        ), contentAlignment = Alignment.Center
+                                ) {
+                                    AsyncImage(
+                                        model = context.resources.getIdentifier(
+                                            jsonResponse.value?.apps!![it].imageLocalName,
+                                            "drawable",
+                                            context.packageName
+                                        ),
+                                        contentDescription = "University of Toronto Logo",
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier.height(48.dp)
+                                    )
+                                }
+                                Text(
+                                    text = jsonResponse.value?.apps!![it].name,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center,
                                 )
                             }
-                            Text(
-                                text = list[index],
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 17.sp,
-                                color = Color.Black,
-//                                modifier = Modifier.padding(16.dp)
-                            )
                         }
                     }
                 }
             )
+
 
             AsyncImage(
                 model = R.drawable.background, contentDescription = "UofT Logo", modifier = Modifier
@@ -196,25 +223,93 @@ fun CenterAlignedTopAppBarExample() {
                     }, sheetState = sheetState
                 ) {
                     // Sheet content
-                    Button(onClick = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showBottomSheet = false
+                    Column(modifier = Modifier.padding(8.dp, 0.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp, 0.dp)) {
+                            Button(onClick = {
+                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                    }
+                                }
+                            }) {
+                                Text("Done")
+                            }
+                            var text by remember { mutableStateOf(TextFieldValue("")) }
+                            OutlinedTextField(
+                                value = text,
+                                onValueChange = { newText ->
+                                    text = newText
+                                },
+                                modifier = Modifier
+                                    .padding(
+                                        8.dp, 0.dp
+                                    )
+                                    .weight(1f)
+//                                    .height(36.dp)
+                            )
+                            Button(onClick = {
+                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                    }
+                                }
+                            }) {
+                                Text("About")
                             }
                         }
-                    }) {
-                        Text("Hide bottom sheet")
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(80.dp),
+                            Modifier.zIndex(1f),
+                            // content padding
+                            contentPadding = PaddingValues(
+                                start = 8.dp,
+                                top = 12.dp,
+                                end = 8.dp,
+                                bottom = 12.dp
+                            ),
+                            content = {
+                                jsonResponse.value?.apps?.size?.let { it ->
+                                    items(it) {
+                                        Column(
+                                            verticalArrangement = Arrangement.Center,
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier.clickable {
+
+                                            }
+                                        ) {
+                                            Box(
+                                                Modifier
+                                                    .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                                    .size(64.dp)
+                                                    .background(
+                                                        MaterialTheme.colorScheme.primary,
+                                                        RoundedCornerShape(8.dp)
+                                                    ), contentAlignment = Alignment.Center
+                                            ) {
+                                                AsyncImage(
+                                                    model = context.resources.getIdentifier(
+                                                        jsonResponse.value?.apps!![it].imageLocalName,
+                                                        "drawable",
+                                                        context.packageName
+                                                    ),
+                                                    contentDescription = "University of Toronto Logo",
+                                                    contentScale = ContentScale.Fit,
+                                                    modifier = Modifier.height(48.dp)
+                                                )
+                                            }
+                                            Text(
+                                                text = jsonResponse.value?.apps!![it].name,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 12.sp,
+                                                color = Color.Black,
+                                                textAlign = TextAlign.Center,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        )
                     }
-                    Text(
-                        modifier = Modifier.padding(8.dp),
-                        text = """
-                    This is an example of a scaffold. It uses the Scaffold composable's parameters to create a screen with a simple top app bar, bottom app bar, and floating action button.
-
-                    It also contains some basic inner content, such as this text.
-
-                    You have pressed the floating action button 6 times.
-                """.trimIndent(),
-                    )
                 }
             }
         }
@@ -223,10 +318,10 @@ fun CenterAlignedTopAppBarExample() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    UofTMobileTheme {
-        CenterAlignedTopAppBarExample()
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun GreetingPreview() {
+//    UofTMobileTheme {
+//        CenterAlignedTopAppBarExample()
+//    }
+//}

@@ -18,7 +18,7 @@ class UofTMobileRepository() {
 
     private val tag: String = "SitesRepository"
     private val client = OkHttpClient()
-    private lateinit var result: MutableLiveData<UofTMobile>
+    private var result: MutableLiveData<UofTMobile> = MutableLiveData<UofTMobile>()
 
     //    private val client = OkHttpClient.Builder().cache(
 //        Cache(
@@ -60,7 +60,7 @@ class UofTMobileRepository() {
     }
 
 
-    fun getResult(): MutableLiveData<UofTMobile> {
+    public fun getResult(): MutableLiveData<UofTMobile> {
         return result
     }
 }
