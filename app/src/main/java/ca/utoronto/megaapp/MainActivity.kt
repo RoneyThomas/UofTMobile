@@ -1,10 +1,14 @@
 package ca.utoronto.megaapp
 
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,6 +58,7 @@ import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import com.example.compose.UofTMobileTheme
 import kotlinx.coroutines.launch
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +80,7 @@ fun CenterAlignedTopAppBarExample() {
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     val list = (1..8).map { it.toString() }
+    val context = LocalContext.current
 
     val navItemColor = NavigationBarItemDefaults.colors(
         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -108,7 +115,7 @@ fun CenterAlignedTopAppBarExample() {
                     selected = false,
                     colors = navItemColor,
                     onClick = {
-//                        selectedItem = 0;
+                        selectedItem = 0;
                         showBottomSheet = true
                     })
                 NavigationBarItem(icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit") },
@@ -138,7 +145,14 @@ fun CenterAlignedTopAppBarExample() {
                     items(list.size) { index ->
                         Column(
                             verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable {
+                                Log.d("MainActivity", "CenterAlignedTopAppBarExample: I am clicked")
+                                val url = "https://developers.android.com"
+                                val intent = CustomTabsIntent.Builder()
+                                    .build()
+                                intent.launchUrl(context, Uri.parse(url))
+                            }
                         ) {
                             Box(
                                 Modifier
@@ -146,7 +160,7 @@ fun CenterAlignedTopAppBarExample() {
                                     .size(64.dp)
                                     .background(
                                         MaterialTheme.colorScheme.primary,
-                                        RoundedCornerShape(4.dp)
+                                        RoundedCornerShape(8.dp)
                                     ), contentAlignment = Alignment.Center
                             ) {
                                 AsyncImage(
@@ -168,7 +182,11 @@ fun CenterAlignedTopAppBarExample() {
                 }
             )
 
-            AsyncImage(model = R.drawable.background, contentDescription = "UofT Logo", modifier = Modifier.align(Alignment.Center).height(256.dp))
+            AsyncImage(
+                model = R.drawable.background, contentDescription = "UofT Logo", modifier = Modifier
+                    .align(Alignment.Center)
+                    .height(256.dp)
+            )
 
 
             if (showBottomSheet) {
