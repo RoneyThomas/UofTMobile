@@ -7,11 +7,13 @@ plugins {
 android {
     namespace = "ca.utoronto.megaapp"
     compileSdk = 34
+//    compileSdkPreview = "VanillaIceCream"
 
     defaultConfig {
         applicationId = "ca.utoronto.megaapp"
-        minSdk = 24
+        minSdk = 21
         targetSdk = 34
+//        targetSdkPreview = "VanillaIceCream"
         versionCode = 1
         versionName = "1.0"
 
@@ -65,6 +67,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.extensions)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
