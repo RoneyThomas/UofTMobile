@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -42,11 +42,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -65,7 +63,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import ca.utoronto.megaapp.data.entities.UofTMobile
 import ca.utoronto.megaapp.ui.AppViewModel
-import ca.utoronto.megaapp.ui.SectionsDTO
 import coil.compose.AsyncImage
 import com.example.compose.UofTMobileTheme
 import kotlinx.coroutines.launch
@@ -75,11 +72,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val avm = AppViewModel(application)
         setContent {
             UofTMobileTheme {
                 CenterAlignedTopAppBarExample(
-                    AppViewModel(application).jsonResponse.observeAsState().value,
-                    AppViewModel(application).sections().observeAsState()
+                    avm.jsonResponse.observeAsState().value, avm
                 )
             }
         }
@@ -89,14 +86,15 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CenterAlignedTopAppBarExample(
-    jsonResponse: UofTMobile?,
-    observeAsState: State<List<SectionsDTO>?>
+    jsonResponse: UofTMobile?, avm: AppViewModel
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
-    val favourites = remember { mutableStateListOf<Int>() }
+    val sections = avm.sections().observeAsState().value
+    val bookmarks = avm.bookmarks.observeAsState().value
+
 
     val context = LocalContext.current
 
@@ -153,7 +151,7 @@ fun CenterAlignedTopAppBarExample(
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
-                    items(jsonResponse?.apps?.size ?: 0) {
+                    items(bookmarks?.size ?: 0) {
                         Column(verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.clickable {
@@ -247,30 +245,29 @@ fun CenterAlignedTopAppBarExample(
                                 Text("About")
                             }
                         }
-                        LazyVerticalGrid(
-                            GridCells.Fixed(3),
+                        LazyVerticalGrid(GridCells.Fixed(3),
                             // content padding
                             contentPadding = PaddingValues(
                                 start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                             ), content = {
-                                for (i in 0..<(observeAsState.value?.size ?: 0)) {
+                                for (i in 0..<(sections?.size ?: 0)) {
                                     item(span = { GridItemSpan(maxLineSpan) }) {
                                         Text(
-                                            observeAsState.value?.get(i)!!.name,
+                                            sections?.get(i)!!.name,
                                             fontWeight = FontWeight.Medium,
                                             fontSize = 16.sp,
                                             lineHeight = 24.sp
                                         )
                                     }
-                                    itemsIndexed(observeAsState.value?.get(i)!!.apps) { _, item ->
+                                    items(sections?.get(i)!!.apps.toList()) { item ->
                                         Column(verticalArrangement = Arrangement.Center,
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier.clickable {
                                                 Log.d(
                                                     "MainActivity",
-                                                    "CenterAlignedTopAppBarExample: I am clicked"
+                                                    "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
                                                 )
-                                                favourites.add(item)
+                                                avm.addBookmark(jsonResponse.apps[item].id)
                                             }) {
                                             Box(
                                                 Modifier
@@ -291,9 +288,13 @@ fun CenterAlignedTopAppBarExample(
                                                     contentScale = ContentScale.Fit,
                                                     modifier = Modifier.height(48.dp)
                                                 )
-                                                if (jsonResponse?.mandatoryApps?.contains(
-                                                        jsonResponse?.apps!![item].id
-                                                    ) ?: false
+                                                Log.d(
+                                                    "MainActivity check mark",
+                                                    avm.bookmarks.observeAsState().value.toString()
+                                                )
+                                                if (bookmarks?.contains(
+                                                        jsonResponse.apps[item].id
+                                                    ) == true
                                                 ) {
                                                     AsyncImage(
                                                         model = R.drawable.checkmark,
