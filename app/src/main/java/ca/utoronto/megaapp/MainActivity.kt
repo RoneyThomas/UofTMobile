@@ -92,6 +92,7 @@ fun CenterAlignedTopAppBarExample(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showRemoveIcon by remember { mutableStateOf(false) }
     val sections = avm.sections().observeAsState().value
     val bookmarks = avm.bookmarks.observeAsState().value
 
@@ -129,14 +130,18 @@ fun CenterAlignedTopAppBarExample(
                 selected = false,
                 colors = navItemColor,
                 onClick = {
-                    selectedItem = 0;
+                    selectedItem = 0
                     showBottomSheet = true
+                    showRemoveIcon = false
                 })
             NavigationBarItem(icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit") },
                 label = { Text("Edit") },
                 selected = false,
                 colors = navItemColor,
-                onClick = { selectedItem = 1 })
+                onClick = {
+                    selectedItem = 1
+                    showRemoveIcon = !showRemoveIcon
+                })
         }
     }) { innerPadding ->
         Box(
@@ -151,43 +156,66 @@ fun CenterAlignedTopAppBarExample(
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
-                    items(bookmarks?.size ?: 0) {
-                        Column(verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable {
-                                Log.d(
-                                    "MainActivity", "CenterAlignedTopAppBarExample: I am clicked"
-                                )
-                                val url = jsonResponse?.apps!![it].url
-                                val intent = CustomTabsIntent.Builder().build()
-                                intent.launchUrl(context, Uri.parse(url))
-                            }) {
-                            Box(
-                                Modifier
-                                    .padding(16.dp, 16.dp, 16.dp, 8.dp)
-                                    .size(64.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)
-                                    ), contentAlignment = Alignment.Center
-                            ) {
-                                AsyncImage(
-                                    model = context.resources.getIdentifier(
-                                        jsonResponse?.apps!![it].imageLocalName.lowercase(),
-                                        "drawable",
-                                        context.packageName
-                                    ),
-                                    contentDescription = "University of Toronto Logo",
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.height(48.dp)
+                    items(items = bookmarks?.toList() ?: emptyList()) { item ->
+                        val app = avm.getAppById(item)
+                        if (app != null) {
+                            Column(verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.clickable {
+                                    Log.d(
+                                        "MainActivity",
+                                        "CenterAlignedTopAppBarExample: I am clicked"
+                                    )
+                                    if (!showRemoveIcon) {
+                                        val url = app.url
+                                        val intent = CustomTabsIntent.Builder().build()
+                                        intent.launchUrl(context, Uri.parse(url))
+                                    }
+                                }) {
+                                Box(
+                                    Modifier
+                                        .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                        .size(64.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.primary,
+                                            RoundedCornerShape(8.dp)
+                                        ), contentAlignment = Alignment.Center
+                                ) {
+                                    AsyncImage(
+                                        model = context.resources.getIdentifier(
+                                            app.imageLocalName.lowercase(),
+                                            "drawable",
+                                            context.packageName
+                                        ),
+                                        contentDescription = "University of Toronto Logo",
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier.height(48.dp)
+                                    )
+                                    if (showRemoveIcon) {
+                                        AsyncImage(
+                                            model = R.drawable.minus,
+                                            contentDescription = "Remove Button",
+                                            modifier = Modifier.clickable {
+                                                Log.d(
+                                                    "Remove Button",
+                                                    "CenterAlignedTopAppBarExample: " + app.id
+                                                )
+                                                if ((avm.bookmarks.value?.size ?: 0) <= 0) {
+                                                    showRemoveIcon = false
+                                                }
+                                                avm.removeBookmark(app.id)
+                                            }
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = app.name,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center,
                                 )
                             }
-                            Text(
-                                text = jsonResponse?.apps!![it].name,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = Color.Black,
-                                textAlign = TextAlign.Center,
-                            )
                         }
 
                     }

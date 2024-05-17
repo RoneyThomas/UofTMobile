@@ -37,7 +37,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
 
-            if (bookmarks.value.isNullOrEmpty()) {
+            if (bookmarks.value == null) {
                 bookmarks.postValue(response.mandatoryApps)
             }
 
@@ -52,7 +52,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (bookmarks.value?.contains(id) == false) {
             bookmarks.postValue(bookmarks.value?.plus(id))
         } else {
-            bookmarks.postValue(bookmarks.value?.minus(id))
+            removeBookmark(id)
         }
+    }
+
+    fun removeBookmark(id: String) {
+        bookmarks.postValue(bookmarks.value?.minus(id))
+    }
+
+    fun getAppById(id: String): App? {
+        return jsonResponse.value?.apps?.single { app: App -> app.id == id }
     }
 }
