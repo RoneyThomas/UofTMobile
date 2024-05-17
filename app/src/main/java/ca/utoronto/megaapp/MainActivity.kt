@@ -1,5 +1,6 @@
 package ca.utoronto.megaapp
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -58,11 +60,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import ca.utoronto.megaapp.data.entities.UofTMobile
-import ca.utoronto.megaapp.ui.AppViewModel
+import ca.utoronto.megaapp.ui.screens.homeScreen.AppViewModel
 import coil.compose.AsyncImage
 import com.example.compose.UofTMobileTheme
 import kotlinx.coroutines.launch
@@ -72,11 +74,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val avm = AppViewModel(application)
+        val appViewModel = AppViewModel(application)
         setContent {
             UofTMobileTheme {
-                CenterAlignedTopAppBarExample(
-                    avm.jsonResponse.observeAsState().value, avm
+                CenterAlignedTopAppBar(
+                    appViewModel
                 )
             }
         }
@@ -85,17 +87,19 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CenterAlignedTopAppBarExample(
-    jsonResponse: UofTMobile?, avm: AppViewModel
+fun CenterAlignedTopAppBar(
+    appViewModel: AppViewModel
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val sheetState = rememberModalBottomSheetState()
+    val addSheetState = rememberModalBottomSheetState()
+    val aboutSheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var addBottomSheet by remember { mutableStateOf(false) }
+    var aboutBottomSheet by remember { mutableStateOf(false) }
     var showRemoveIcon by remember { mutableStateOf(false) }
-    val sections = avm.sections().observeAsState().value
-    val bookmarks = avm.bookmarks.observeAsState().value
-
+    val sections = appViewModel.sections().observeAsState().value
+    val bookmarks = appViewModel.bookmarks.observeAsState().value
+    val jsonResponse = appViewModel.jsonResponse.value
 
     val context = LocalContext.current
 
@@ -131,11 +135,17 @@ fun CenterAlignedTopAppBarExample(
                 colors = navItemColor,
                 onClick = {
                     selectedItem = 0
-                    showBottomSheet = true
+                    addBottomSheet = true
                     showRemoveIcon = false
                 })
             NavigationBarItem(icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit") },
-                label = { Text("Edit") },
+                label = {
+                    if (showRemoveIcon) {
+                        Text("Done")
+                    } else {
+                        Text("Edit")
+                    }
+                },
                 selected = false,
                 colors = navItemColor,
                 onClick = {
@@ -157,7 +167,7 @@ fun CenterAlignedTopAppBarExample(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
                     items(items = bookmarks?.toList() ?: emptyList()) { item ->
-                        val app = avm.getAppById(item)
+                        val app = appViewModel.getAppById(item)
                         if (app != null) {
                             Column(verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -192,20 +202,20 @@ fun CenterAlignedTopAppBarExample(
                                         modifier = Modifier.height(48.dp)
                                     )
                                     if (showRemoveIcon) {
-                                        AsyncImage(
-                                            model = R.drawable.minus,
+                                        AsyncImage(model = R.drawable.minus,
                                             contentDescription = "Remove Button",
                                             modifier = Modifier.clickable {
                                                 Log.d(
                                                     "Remove Button",
                                                     "CenterAlignedTopAppBarExample: " + app.id
                                                 )
-                                                if ((avm.bookmarks.value?.size ?: 0) <= 0) {
+                                                if ((appViewModel.bookmarks.value?.size
+                                                        ?: 0) <= 0
+                                                ) {
                                                     showRemoveIcon = false
                                                 }
-                                                avm.removeBookmark(app.id)
-                                            }
-                                        )
+                                                appViewModel.removeBookmark(app.id)
+                                            })
                                     }
                                 }
                                 Text(
@@ -231,117 +241,203 @@ fun CenterAlignedTopAppBarExample(
             )
 
 
-            if (showBottomSheet) {
+            if (addBottomSheet) {
                 ModalBottomSheet(
                     onDismissRequest = {
-                        showBottomSheet = false
-                    }, sheetState = sheetState
+                        addBottomSheet = false
+                    }, sheetState = aboutSheetState
                 ) {
-                    // Sheet content
-                    Column(modifier = Modifier.padding(8.dp, 0.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(16.dp, 0.dp)
-                        ) {
-                            Button(onClick = {
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        showBottomSheet = false
-                                    }
-                                }
-                            }) {
-                                Text("Done")
-                            }
-                            var text by remember { mutableStateOf(TextFieldValue("")) }
-                            OutlinedTextField(
-                                value = text, onValueChange = { newText ->
-                                    text = newText
-                                }, modifier = Modifier
-                                    .padding(
-                                        8.dp, 0.dp
-                                    )
-                                    .weight(1f)
-//                                    .height(36.dp)
-                            )
-                            Button(onClick = {
-                                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        showBottomSheet = false
-                                    }
-                                }
-                            }) {
-                                Text("About")
-                            }
-                        }
-                        LazyVerticalGrid(GridCells.Fixed(3),
-                            // content padding
-                            contentPadding = PaddingValues(
-                                start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
-                            ), content = {
-                                for (i in 0..<(sections?.size ?: 0)) {
-                                    item(span = { GridItemSpan(maxLineSpan) }) {
-                                        Text(
-                                            sections?.get(i)!!.name,
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 16.sp,
-                                            lineHeight = 24.sp
-                                        )
-                                    }
-                                    items(sections?.get(i)!!.apps.toList()) { item ->
-                                        Column(verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier.clickable {
-                                                Log.d(
-                                                    "MainActivity",
-                                                    "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
-                                                )
-                                                avm.addBookmark(jsonResponse.apps[item].id)
-                                            }) {
-                                            Box(
-                                                Modifier
-                                                    .padding(16.dp, 16.dp, 16.dp, 8.dp)
-                                                    .size(64.dp)
-                                                    .background(
-                                                        MaterialTheme.colorScheme.primary,
-                                                        RoundedCornerShape(8.dp)
-                                                    ), contentAlignment = Alignment.Center
-                                            ) {
-                                                AsyncImage(
-                                                    model = context.resources.getIdentifier(
-                                                        jsonResponse?.apps!![item].imageLocalName.lowercase(),
-                                                        "drawable",
-                                                        context.packageName
-                                                    ),
-                                                    contentDescription = "University of Toronto Logo",
-                                                    contentScale = ContentScale.Fit,
-                                                    modifier = Modifier.height(48.dp)
-                                                )
-                                                Log.d(
-                                                    "MainActivity check mark",
-                                                    avm.bookmarks.observeAsState().value.toString()
-                                                )
-                                                if (bookmarks?.contains(
-                                                        jsonResponse.apps[item].id
-                                                    ) == true
-                                                ) {
-                                                    AsyncImage(
-                                                        model = R.drawable.checkmark,
-                                                        contentDescription = "Selected"
-                                                    )
-                                                }
-                                            }
-                                            Text(
-                                                text = jsonResponse?.apps!![item].name,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 12.sp,
-                                                color = Color.Black,
-                                                textAlign = TextAlign.Center,
-                                            )
+                    Box {
+                        // Sheet content
+                        Column(modifier = Modifier.padding(8.dp, 0.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(16.dp, 0.dp)
+                            ) {
+                                Button(onClick = {
+                                    scope.launch { addSheetState.hide() }.invokeOnCompletion {
+                                        if (!addSheetState.isVisible) {
+                                            addBottomSheet = false
                                         }
                                     }
+                                }) {
+                                    Text("Done")
                                 }
-                            })
+                                var text by remember { mutableStateOf(TextFieldValue("")) }
+                                OutlinedTextField(
+                                    value = text, onValueChange = { newText ->
+                                        text = newText
+                                    }, modifier = Modifier
+                                        .padding(
+                                            8.dp, 0.dp
+                                        )
+                                        .weight(1f)
+//                                    .height(36.dp)
+                                )
+                                Button(onClick = {
+                                    scope.launch { addSheetState.hide() }.invokeOnCompletion {
+                                        addBottomSheet = false
+                                        aboutBottomSheet = true
+                                    }
+                                }) {
+                                    Text("About")
+                                }
+                            }
+                            LazyVerticalGrid(GridCells.Fixed(4),
+                                // content padding
+                                contentPadding = PaddingValues(
+                                    start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
+                                ), content = {
+                                    for (i in 0..<(sections?.size ?: 0)) {
+                                        item(span = { GridItemSpan(maxLineSpan) }) {
+                                            Text(
+                                                sections?.get(i)!!.name,
+                                                fontWeight = FontWeight.Medium,
+                                                fontSize = 16.sp,
+                                                lineHeight = 24.sp
+                                            )
+                                        }
+                                        items(sections?.get(i)!!.apps.toList()) { item ->
+                                            Column(verticalArrangement = Arrangement.Center,
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                modifier = Modifier.clickable {
+                                                    Log.d(
+                                                        "MainActivity",
+                                                        "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
+                                                    )
+                                                    appViewModel.addBookmark(jsonResponse.apps[item].id)
+                                                }) {
+                                                Box(
+                                                    Modifier
+                                                        .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                                        .size(64.dp)
+                                                        .background(
+                                                            MaterialTheme.colorScheme.primary,
+                                                            RoundedCornerShape(8.dp)
+                                                        ), contentAlignment = Alignment.Center
+                                                ) {
+                                                    AsyncImage(
+                                                        model = context.resources.getIdentifier(
+                                                            jsonResponse?.apps!![item].imageLocalName.lowercase(),
+                                                            "drawable",
+                                                            context.packageName
+                                                        ),
+                                                        contentDescription = "University of Toronto Logo",
+                                                        contentScale = ContentScale.Fit,
+                                                        modifier = Modifier.height(48.dp)
+                                                    )
+                                                    if (bookmarks?.contains(
+                                                            jsonResponse.apps[item].id
+                                                        ) == true
+                                                    ) {
+                                                        AsyncImage(
+                                                            model = R.drawable.checkmark,
+                                                            contentDescription = "Selected"
+                                                        )
+                                                    }
+                                                }
+                                                Text(
+                                                    text = jsonResponse?.apps!![item].name,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 12.sp,
+                                                    color = Color.Black,
+                                                    textAlign = TextAlign.Center,
+                                                )
+                                            }
+                                        }
+                                    }
+                                })
+                        }
+                        AsyncImage(
+                            model = R.drawable.background,
+                            contentDescription = "UofT Logo",
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .height(256.dp)
+                        )
                     }
+                }
+            }
+            if (aboutBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        aboutBottomSheet = false
+                    }, sheetState = aboutSheetState
+                ) {
+                    // Sheet content
+                    Column(modifier = Modifier.padding(12.dp, 8.dp)) {
+                        Button(onClick = {
+                            scope.launch { aboutSheetState.hide() }.invokeOnCompletion {
+                                if (!aboutSheetState.isVisible) {
+                                    aboutBottomSheet = false
+                                }
+                            }
+                        }) {
+                            Text("Done")
+                        }
+                        Text(
+                            text = "Feedback",
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        Text(
+                            text = "Have any comments or suggestions on the content or layout of U of T Mobile? We'd love to hear it!",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                    data = Uri.parse("mailto:") // Only email apps handle this.
+                                    putExtra(Intent.EXTRA_EMAIL, "mad.lab@utoronto.ca")
+                                    putExtra(
+                                        Intent.EXTRA_SUBJECT, "UofT Mobile Feedback (v3.0, 4)"
+                                    )
+                                }
+                                context.startActivity(intent)
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 4.dp)
+                        ) {
+                            Text("Submit Feedback")
+                        }
+                        Text(
+                            text = "Version",
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        Text(text = "Version 3.0, Build 1", textAlign = TextAlign.Center)
+                        Text(
+                            text = "Settings",
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        Button(onClick = {
+
+                        }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                            Text("Reset U of T Mobile")
+                        }
+                        Button(onClick = {
+
+                        }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                            Text("Refresh Index")
+                        }
+                        Text("MADLab",
+                            textDecoration = TextDecoration.Underline,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                                .clickable {
+                                    val url = "https://mobile.utoronto.ca/"
+                                    val intent = CustomTabsIntent
+                                        .Builder()
+                                        .build()
+                                    intent.launchUrl(context, Uri.parse(url))
+                                })
+                    }
+
                 }
             }
         }

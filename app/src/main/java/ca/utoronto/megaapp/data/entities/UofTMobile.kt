@@ -3,9 +3,10 @@ package ca.utoronto.megaapp.data.entities
 import kotlinx.serialization.Serializable
 
 // Generated using https://app.quicktype.io/
+// Used for serializing json object from http request
 
 @Serializable
-data class UofTMobile (
+data class UofTMobile(
     val disabledFeatures: List<String>,
     val supportedBuilds: List<Long>,
     val sections: List<Section>,
@@ -14,7 +15,7 @@ data class UofTMobile (
 )
 
 @Serializable
-data class App (
+data class App(
     val name: String,
     val id: String,
     val sectionIndex: Long,
@@ -27,7 +28,7 @@ data class App (
 )
 
 @Serializable
-data class Section (
+data class Section(
     val index: Long,
     val name: String
 )

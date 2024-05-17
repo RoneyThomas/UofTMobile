@@ -22,19 +22,17 @@ class UofTMobileRepository(context: Context) {
     private val tag: String = "SitesRepository"
 
     var result: MutableLiveData<UofTMobile> = MutableLiveData<UofTMobile>()
+
+    // Creates OkHttpClient with http caching
     private val client: OkHttpClient = OkHttpClient.Builder().cache(
         Cache(
-            directory = File(context.cacheDir, "http_cache"),
-            maxSize = 1L * 1024L * 1024L // 50 MiB
+            directory = File(context.cacheDir, "http_cache"), maxSize = 1L * 1024L * 1024L // 1 MiB
         )
     ).build()
 
     init {
         val request = Request.Builder()
-//            .url("https://uoft-mobile.s3.ca-central-1.amazonaws.com/UofTMobile.JSON")
-            .url("http://10.0.1.2:8000/UofTMobile.JSON")
-            .build()
-
+            .url("https://uoft-mobile.s3.ca-central-1.amazonaws.com/UofTMobile.JSON").build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -42,22 +40,18 @@ class UofTMobileRepository(context: Context) {
                     is UnknownHostException -> Log.d(tag, "onFailure: Unknown host!")
                     is ConnectException -> Log.d(tag, "onFailure: No internet!")
                     else -> e.printStackTrace()
-                    //TODO read from asset JSON files
                 }
+                // Loads local JSON when network request fails
                 result.postValue(
-                    Json.decodeFromString(
-                        context.assets.open("UofTMobile.json").bufferedReader()
-                            .use { it.readText() }) as UofTMobile
+                    Json.decodeFromString(context.assets.open("UofTMobile.json").bufferedReader()
+                        .use { it.readText() }) as UofTMobile
                 )
             }
 
+            // Successful HTTP request
             override fun onResponse(call: Call, response: Response) {
                 response.use {
                     if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-//                    for ((name, value) in response.headers) {
-//                        println("$name: $value")
-//                    }
                     val jsonResponse: UofTMobile =
                         Json.decodeFromString<UofTMobile>(response.body!!.string())
                     result.postValue(jsonResponse)

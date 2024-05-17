@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.extensions)
+    implementation(libs.reorderable)
+    implementation(libs.androidx.preference.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -17,6 +17,8 @@ runtimeLivedata = "1.6.7"
 lifecycleLivedataKtx = "2.8.0"
 androidxUi = "1.6.7"
 lifecycleExtensions = "2.2.0"
+reorderable = "2.1.1"
+preferenceKtx = "1.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +43,8 @@ androidx-browser = { group = "androidx.browser", name = "browser", version.ref =
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "lifecycleExtensions" }
+reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.ref = "reorderable" }
+androidx-preference-ktx = { group = "androidx.preference", name = "preference-ktx", version.ref = "preferenceKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
