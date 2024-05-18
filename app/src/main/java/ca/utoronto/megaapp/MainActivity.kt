@@ -1,5 +1,7 @@
 package ca.utoronto.megaapp
 
+import android.content.ClipData
+import android.content.ClipDescription
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -8,8 +10,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.draganddrop.dragAndDropSource
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +31,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -53,6 +61,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.DragAndDropTransferData
+import androidx.compose.ui.draganddrop.mimeTypes
+import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -85,7 +98,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CenterAlignedTopAppBar(
     appViewModel: AppViewModel
@@ -103,6 +116,9 @@ fun CenterAlignedTopAppBar(
 
     val context = LocalContext.current
 
+    var appId by remember {
+        mutableStateOf("")
+    }
 
     val navItemColor = NavigationBarItemDefaults.colors(
         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -158,7 +174,7 @@ fun CenterAlignedTopAppBar(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .background(color = Color(0xFFD0D1CB))
+                .background(color = Color(0xFFD0D1C9))
         ) {
 
             LazyVerticalGrid(columns = GridCells.Adaptive(80.dp), Modifier.zIndex(1f),
@@ -168,20 +184,47 @@ fun CenterAlignedTopAppBar(
                 ), content = {
                     items(items = bookmarks?.toList() ?: emptyList()) { item ->
                         val app = appViewModel.getAppById(item)
+                        var tintColor by remember {
+                            mutableStateOf(Color(0xFFD0D1C9))
+                        }
                         if (app != null) {
                             Column(verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.clickable {
-                                    Log.d(
-                                        "MainActivity",
-                                        "CenterAlignedTopAppBarExample: I am clicked"
+                                modifier = Modifier
+                                    .dragAndDropTarget(
+                                        shouldStartDragAndDrop = { event ->
+                                            event
+                                                .mimeTypes()
+                                                .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                                        },
+                                        target = object : DragAndDropTarget {
+                                            override fun onDrop(event: DragAndDropEvent): Boolean {
+                                                val draggedData = event.toAndroidDragEvent()
+                                                    .clipData.getItemAt(0).text
+                                                appId = draggedData.toString()
+                                                Log.d("MainActivity", "onDrop: dropped $appId on $item")
+                                                appViewModel.swapBookmark(item, appId)
+                                                return true
+                                            }
+
+                                            override fun onEntered(event: DragAndDropEvent) {
+                                                super.onEntered(event)
+                                                tintColor = Color(0xff6FC7EA)
+                                            }
+
+                                            override fun onEnded(event: DragAndDropEvent) {
+                                                super.onEntered(event)
+                                                tintColor = Color(0xFFD0D1C9)
+                                            }
+
+                                            override fun onExited(event: DragAndDropEvent) {
+                                                super.onEntered(event)
+                                                tintColor = Color(0xFFD0D1C9)
+                                            }
+
+                                        }
                                     )
-                                    if (!showRemoveIcon) {
-                                        val url = app.url
-                                        val intent = CustomTabsIntent.Builder().build()
-                                        intent.launchUrl(context, Uri.parse(url))
-                                    }
-                                }) {
+                            ) {
                                 Box(
                                     Modifier
                                         .padding(16.dp, 16.dp, 16.dp, 8.dp)
@@ -189,7 +232,19 @@ fun CenterAlignedTopAppBar(
                                         .background(
                                             MaterialTheme.colorScheme.primary,
                                             RoundedCornerShape(8.dp)
-                                        ), contentAlignment = Alignment.Center
+                                        )
+                                        .border(2.dp, tintColor, RoundedCornerShape(8.dp))
+                                        .dragAndDropSource {
+                                            detectTapGestures(onLongPress = {
+                                                startTransfer(
+                                                    DragAndDropTransferData(
+                                                        ClipData.newPlainText(
+                                                            "appId", item
+                                                        )
+                                                    )
+                                                )
+                                            })
+                                        }, contentAlignment = Alignment.Center
                                 ) {
                                     AsyncImage(
                                         model = context.resources.getIdentifier(
@@ -446,10 +501,11 @@ fun CenterAlignedTopAppBar(
     }
 }
 
+
 //@Preview(showBackground = true)
 //@Composable
 //fun GreetingPreview() {
 //    UofTMobileTheme {
-//        CenterAlignedTopAppBarExample()
+//        CenterAlignedTopAppBar(AppViewModel(LocalContext.current.applicationContext))
 //    }
 //}
