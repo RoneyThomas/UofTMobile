@@ -31,7 +31,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -110,8 +109,8 @@ fun CenterAlignedTopAppBar(
     var addBottomSheet by remember { mutableStateOf(false) }
     var aboutBottomSheet by remember { mutableStateOf(false) }
     var showRemoveIcon by remember { mutableStateOf(false) }
-    val sections = appViewModel.sections().observeAsState().value
-    val bookmarks = appViewModel.bookmarks.observeAsState().value
+    val sections by appViewModel.sections().observeAsState()
+    val bookmarks = appViewModel.bookmarks.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
 
     val context = LocalContext.current
@@ -182,48 +181,17 @@ fun CenterAlignedTopAppBar(
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
-                    items(items = bookmarks?.toList() ?: emptyList()) { item ->
+                    items(items = bookmarks.value?.toList() ?: emptyList()) { item ->
                         val app = appViewModel.getAppById(item)
                         var tintColor by remember {
                             mutableStateOf(Color(0xFFD0D1C9))
                         }
                         if (app != null) {
-                            Column(verticalArrangement = Arrangement.Center,
+                            Column(
+                                verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
-                                    .dragAndDropTarget(
-                                        shouldStartDragAndDrop = { event ->
-                                            event
-                                                .mimeTypes()
-                                                .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
-                                        },
-                                        target = object : DragAndDropTarget {
-                                            override fun onDrop(event: DragAndDropEvent): Boolean {
-                                                val draggedData = event.toAndroidDragEvent()
-                                                    .clipData.getItemAt(0).text
-                                                appId = draggedData.toString()
-                                                Log.d("MainActivity", "onDrop: dropped $appId on $item")
-                                                appViewModel.swapBookmark(item, appId)
-                                                return true
-                                            }
 
-                                            override fun onEntered(event: DragAndDropEvent) {
-                                                super.onEntered(event)
-                                                tintColor = Color(0xff6FC7EA)
-                                            }
-
-                                            override fun onEnded(event: DragAndDropEvent) {
-                                                super.onEntered(event)
-                                                tintColor = Color(0xFFD0D1C9)
-                                            }
-
-                                            override fun onExited(event: DragAndDropEvent) {
-                                                super.onEntered(event)
-                                                tintColor = Color(0xFFD0D1C9)
-                                            }
-
-                                        }
-                                    )
                             ) {
                                 Box(
                                     Modifier
@@ -234,6 +202,46 @@ fun CenterAlignedTopAppBar(
                                             RoundedCornerShape(8.dp)
                                         )
                                         .border(2.dp, tintColor, RoundedCornerShape(8.dp))
+                                        .dragAndDropTarget(
+                                            shouldStartDragAndDrop = { event ->
+                                                event
+                                                    .mimeTypes()
+                                                    .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                                            },
+                                            target = object : DragAndDropTarget {
+                                                override fun onDrop(event: DragAndDropEvent): Boolean {
+                                                    val draggedData = event.toAndroidDragEvent()
+                                                        .clipData.getItemAt(0).text
+                                                    appId = draggedData.toString()
+                                                    Log.d(
+                                                        "MainActivity",
+                                                        "onDrop: dropped $appId on $item"
+                                                    )
+                                                    appViewModel.swapBookmark(item, appId)
+                                                    return true
+                                                }
+
+                                                override fun onEntered(event: DragAndDropEvent) {
+                                                    super.onEntered(event)
+                                                    Log.d(
+                                                        "MainActivity",
+                                                        "onEntered: selected $item"
+                                                    )
+                                                    tintColor = Color(0xff6FC7EA)
+                                                }
+
+                                                override fun onEnded(event: DragAndDropEvent) {
+                                                    super.onEntered(event)
+                                                    tintColor = Color(0xFFD0D1C9)
+                                                }
+
+                                                override fun onExited(event: DragAndDropEvent) {
+                                                    super.onEntered(event)
+                                                    tintColor = Color(0xFFD0D1C9)
+                                                }
+
+                                            }
+                                        )
                                         .dragAndDropSource {
                                             detectTapGestures(onLongPress = {
                                                 startTransfer(
@@ -244,7 +252,8 @@ fun CenterAlignedTopAppBar(
                                                     )
                                                 )
                                             })
-                                        }, contentAlignment = Alignment.Center
+                                        },
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     AsyncImage(
                                         model = context.resources.getIdentifier(
@@ -381,7 +390,7 @@ fun CenterAlignedTopAppBar(
                                                         contentScale = ContentScale.Fit,
                                                         modifier = Modifier.height(48.dp)
                                                     )
-                                                    if (bookmarks?.contains(
+                                                    if (bookmarks.value?.contains(
                                                             jsonResponse.apps[item].id
                                                         ) == true
                                                     ) {

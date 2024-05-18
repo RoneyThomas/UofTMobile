@@ -1,6 +1,7 @@
 package ca.utoronto.megaapp.ui.screens.homeScreen
 
 import android.app.Application
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -16,7 +17,8 @@ import ca.utoronto.megaapp.ui.SectionsDTO
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val uofTMobileRepository: UofTMobileRepository = UofTMobileRepository(application)
-    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplication())
+    private val sharedPreferences: SharedPreferences =
+        PreferenceManager.getDefaultSharedPreferences(getApplication())
 
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
 
@@ -51,7 +53,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     bookmarks.postValue(sharedPref.split(",").toList())
                 } else {
                     bookmarks.postValue(response.mandatoryApps)
-                    savePreference()
+                    savePreference(response.mandatoryApps)
                 }
             }
 
@@ -64,40 +66,39 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addBookmark(id: String) {
         if (bookmarks.value?.contains(id) == false) {
-            bookmarks.postValue(bookmarks.value?.plus(id))
-            savePreference()
+            val updateList = bookmarks.value!!.toMutableList()
+            updateList.plus(id)
+            savePreference(updateList)
         } else {
             removeBookmark(id)
         }
     }
 
-    private fun savePreference() {
-        sharedPreferences.edit()
-            .putString("bookmarks", bookmarks.value!!.joinToString(separator = ",")).apply()
+    private fun savePreference(updateList: List<String>?) {
+        if (updateList != null) {
+            sharedPreferences.edit()
+                .putString("bookmarks", updateList.joinToString(separator = ",")).apply()
+        }
     }
 
     fun removeBookmark(id: String) {
-        bookmarks.postValue(bookmarks.value?.minus(id))
-        savePreference()
+        val updateList = bookmarks.value!!.toMutableList()
+        updateList.minus(id)
+        savePreference(updateList)
     }
 
     fun swapBookmark(id1: String, id2: String) {
         Log.d("AppViewModel", "i1: $id1, i2: $id2")
         Log.d("AppViewModel", "${bookmarks.value?.toMutableList()}")
-        val tempList = bookmarks.value!!.toMutableList()
-        val i1 = tempList.indexOf(id1)
-        val i2 = tempList.indexOf(id2)
-        tempList.removeAt(i2)
-        tempList.add(i1, id2)
-//            bookmarks.postValue(tempList)
-        bookmarks.value = tempList
+        val updateList = bookmarks.value!!.toMutableList()
+        Log.d("AppViewModel", updateList.toString())
+        val i1 = updateList.indexOf(id1)
+        val i2 = updateList.indexOf(id2)
+        updateList.removeAt(i2)
+        updateList.add(i1, id2)
+        bookmarks.value = updateList
         Log.d("AppViewModel", "${bookmarks.value?.toMutableList()}")
-        savePreference()
-//        if (i1 != -1 && i2 != -1) {
-//
-//        } else {
-//            Log.d("AppViewModel else", "i1: $id1, i2: $id2")
-//        }
+        savePreference(updateList)
     }
 
     fun getAppById(id: String): App? {
