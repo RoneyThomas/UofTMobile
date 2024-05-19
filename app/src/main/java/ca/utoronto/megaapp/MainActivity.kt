@@ -133,8 +133,8 @@ fun HomeScreen(
     var addBottomSheet by remember { mutableStateOf(false) }
     var aboutBottomSheet by remember { mutableStateOf(false) }
     var showRemoveIcon by remember { mutableStateOf(false) }
-    val sections by appViewModel.sections().observeAsState()
-    val bookmarks = appViewModel.bookmarks.observeAsState()
+    val sections = appViewModel.sections().observeAsState().value
+    val bookmarks = appViewModel.bookmarks.observeAsState().value
     val jsonResponse = appViewModel.jsonResponse.value
 
     val context = LocalContext.current
@@ -205,7 +205,7 @@ fun HomeScreen(
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
-                    items(items = bookmarks.value?.toList() ?: emptyList()) { item ->
+                    items(items = bookmarks?.toList() ?: emptyList()) { item ->
                         val app = appViewModel.getAppById(item)
                         var tintColor by remember {
                             mutableStateOf(Color(0xFFD0D1C9))
@@ -425,7 +425,7 @@ fun HomeScreen(
                                                         contentScale = ContentScale.Fit,
                                                         modifier = Modifier.height(48.dp)
                                                     )
-                                                    if (bookmarks.value?.contains(
+                                                    if (bookmarks?.contains(
                                                             jsonResponse.apps[item].id
                                                         ) == true
                                                     ) {
