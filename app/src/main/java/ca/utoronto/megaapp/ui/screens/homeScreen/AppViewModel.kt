@@ -13,6 +13,7 @@ import ca.utoronto.megaapp.data.entities.Section
 import ca.utoronto.megaapp.data.entities.UofTMobile
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
 import ca.utoronto.megaapp.ui.SectionsDTO
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -22,7 +23,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
 
-    var bookmarks = MutableLiveData<List<String>>()
+    var bookmarks = MutableStateFlow<List<String>>(emptyList())
 
 
     // Creates DTO from jsonResponse
@@ -47,12 +48,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // Loads bookmark
-            if (bookmarks.value == null) {
+            if (bookmarks.value.isEmpty()) {
                 val sharedPref = sharedPreferences.getString("bookmarks", "")
                 if (!sharedPref.isNullOrEmpty()) {
-                    bookmarks.postValue(sharedPref.split(",").toList())
+                    bookmarks.value = sharedPref.split(",").toList()
                 } else {
-                    bookmarks.postValue(response.mandatoryApps)
+                    bookmarks.value = response.mandatoryApps
                     savePreference(response.mandatoryApps)
                 }
             }
@@ -65,8 +66,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addBookmark(id: String) {
-        if (bookmarks.value?.contains(id) == false) {
-            val updateList = bookmarks.value!!.toMutableList()
+        if (!bookmarks.value.contains(id)) {
+            val updateList = bookmarks.value.toMutableList()
             updateList.plus(id)
             savePreference(updateList)
         } else {
@@ -82,22 +83,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun removeBookmark(id: String) {
-        val updateList = bookmarks.value!!.toMutableList()
+        val updateList = bookmarks.value.toMutableList()
         updateList.minus(id)
         savePreference(updateList)
     }
 
     fun swapBookmark(id1: String, id2: String) {
         Log.d("AppViewModel", "i1: $id1, i2: $id2")
-        Log.d("AppViewModel", "${bookmarks.value?.toMutableList()}")
-        val updateList = bookmarks.value!!.toMutableList()
+        Log.d("AppViewModel", "${bookmarks.value.toMutableList()}")
+        val updateList = bookmarks.value.toMutableList()
         Log.d("AppViewModel", updateList.toString())
         val i1 = updateList.indexOf(id1)
         val i2 = updateList.indexOf(id2)
         updateList.removeAt(i2)
         updateList.add(i1, id2)
         bookmarks.value = updateList
-        Log.d("AppViewModel", "${bookmarks.value?.toMutableList()}")
+        Log.d("AppViewModel", "${bookmarks.value.toMutableList()}")
         savePreference(updateList)
     }
 

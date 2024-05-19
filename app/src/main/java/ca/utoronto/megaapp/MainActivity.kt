@@ -1,5 +1,6 @@
 package ca.utoronto.megaapp
 
+import android.app.Application
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.Intent
@@ -51,6 +52,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -76,6 +78,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import ca.utoronto.megaapp.ui.screens.homeScreen.AppViewModel
 import coil.compose.AsyncImage
 import com.example.compose.UofTMobileTheme
@@ -88,19 +94,44 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val appViewModel = AppViewModel(application)
         setContent {
+//            UofTMobileTheme {
+//                HomeScreen(
+//                    appViewModel
+//                ) { navController.navigate("home") }
+//            }
+            UofTMobileNavHost(
+                application = application
+            )
+        }
+    }
+}
+
+@Composable
+fun UofTMobileNavHost(
+    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberNavController(),
+    startDestination: String = "home",
+    application: Application
+) {
+    val appViewModel = AppViewModel(application)
+    NavHost(
+        modifier = modifier, navController = navController, startDestination = startDestination
+    ) {
+        composable("home") {
             UofTMobileTheme {
-                CenterAlignedTopAppBar(
+                HomeScreen(
                     appViewModel
-                )
+                ) { navController.navigate("home") }
             }
         }
+        composable("rssScreen") { RssScreen() }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun CenterAlignedTopAppBar(
-    appViewModel: AppViewModel
+fun HomeScreen(
+    appViewModel: AppViewModel, onNavigateToRssScreen: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val addSheetState = rememberModalBottomSheetState()
@@ -110,7 +141,7 @@ fun CenterAlignedTopAppBar(
     var aboutBottomSheet by remember { mutableStateOf(false) }
     var showRemoveIcon by remember { mutableStateOf(false) }
     val sections by appViewModel.sections().observeAsState()
-    val bookmarks = appViewModel.bookmarks.observeAsState()
+    val bookmarks = appViewModel.bookmarks.collectAsState()
     val jsonResponse = appViewModel.jsonResponse.value
 
     val context = LocalContext.current
@@ -142,7 +173,7 @@ fun CenterAlignedTopAppBar(
             },
         )
     }, bottomBar = {
-        var selectedItem by remember { mutableIntStateOf(0) }
+        var selectedItem by remember { mutableIntStateOf(-1) }
         NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
             NavigationBarItem(icon = { Icon(Icons.Filled.Add, contentDescription = "Add") },
                 label = { Text("Add") },
@@ -181,17 +212,73 @@ fun CenterAlignedTopAppBar(
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
-                    items(items = bookmarks.value?.toList() ?: emptyList()) { item ->
+                    items(items = bookmarks.value.toList()) { item ->
                         val app = appViewModel.getAppById(item)
                         var tintColor by remember {
                             mutableStateOf(Color(0xFFD0D1C9))
                         }
                         if (app != null) {
-                            Column(
-                                verticalArrangement = Arrangement.Center,
+                            Column(verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
+                                    .dragAndDropTarget(shouldStartDragAndDrop = { event ->
+                                        event
+                                            .mimeTypes()
+                                            .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                                    }, target = object : DragAndDropTarget {
+                                        override fun onDrop(event: DragAndDropEvent): Boolean {
+                                            val draggedData =
+                                                event.toAndroidDragEvent().clipData.getItemAt(0).text
+                                            appId = draggedData.toString()
+                                            Log.d(
+                                                "MainActivity", "onDrop: dropped $appId on $item"
+                                            )
+                                            appViewModel.swapBookmark(item, appId)
+                                            return true
+                                        }
 
+                                        override fun onEntered(event: DragAndDropEvent) {
+                                            super.onEntered(event)
+                                            Log.d(
+                                                "MainActivity", "onEntered: selected $item"
+                                            )
+                                            tintColor = Color(0xff6FC7EA)
+                                        }
+
+                                        override fun onEnded(event: DragAndDropEvent) {
+                                            super.onEntered(event)
+                                            Log.d(
+                                                "MainActivity", "onEnded: selected $item"
+                                            )
+                                            tintColor = Color(0xFFD0D1C9)
+                                        }
+
+                                        override fun onExited(event: DragAndDropEvent) {
+                                            super.onEntered(event)
+                                            Log.d(
+                                                "MainActivity", "onExited: selected $item"
+                                            )
+                                            tintColor = Color(0xFFD0D1C9)
+                                        }
+
+                                    })
+                                    .dragAndDropSource {
+                                        detectTapGestures(onLongPress = {
+                                            startTransfer(
+                                                DragAndDropTransferData(
+                                                    ClipData.newPlainText(
+                                                        "appId", item
+                                                    )
+                                                )
+                                            )
+                                        }, onTap = {
+                                            val url = app.url
+                                            val intent = CustomTabsIntent
+                                                .Builder()
+                                                .build()
+                                            intent.launchUrl(context, Uri.parse(url))
+                                        })
+                                    }
                             ) {
                                 Box(
                                     Modifier
@@ -201,58 +288,7 @@ fun CenterAlignedTopAppBar(
                                             MaterialTheme.colorScheme.primary,
                                             RoundedCornerShape(8.dp)
                                         )
-                                        .border(2.dp, tintColor, RoundedCornerShape(8.dp))
-                                        .dragAndDropTarget(
-                                            shouldStartDragAndDrop = { event ->
-                                                event
-                                                    .mimeTypes()
-                                                    .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
-                                            },
-                                            target = object : DragAndDropTarget {
-                                                override fun onDrop(event: DragAndDropEvent): Boolean {
-                                                    val draggedData = event.toAndroidDragEvent()
-                                                        .clipData.getItemAt(0).text
-                                                    appId = draggedData.toString()
-                                                    Log.d(
-                                                        "MainActivity",
-                                                        "onDrop: dropped $appId on $item"
-                                                    )
-                                                    appViewModel.swapBookmark(item, appId)
-                                                    return true
-                                                }
-
-                                                override fun onEntered(event: DragAndDropEvent) {
-                                                    super.onEntered(event)
-                                                    Log.d(
-                                                        "MainActivity",
-                                                        "onEntered: selected $item"
-                                                    )
-                                                    tintColor = Color(0xff6FC7EA)
-                                                }
-
-                                                override fun onEnded(event: DragAndDropEvent) {
-                                                    super.onEntered(event)
-                                                    tintColor = Color(0xFFD0D1C9)
-                                                }
-
-                                                override fun onExited(event: DragAndDropEvent) {
-                                                    super.onEntered(event)
-                                                    tintColor = Color(0xFFD0D1C9)
-                                                }
-
-                                            }
-                                        )
-                                        .dragAndDropSource {
-                                            detectTapGestures(onLongPress = {
-                                                startTransfer(
-                                                    DragAndDropTransferData(
-                                                        ClipData.newPlainText(
-                                                            "appId", item
-                                                        )
-                                                    )
-                                                )
-                                            })
-                                        },
+                                        .border(2.dp, tintColor, RoundedCornerShape(8.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     AsyncImage(
@@ -273,9 +309,7 @@ fun CenterAlignedTopAppBar(
                                                     "Remove Button",
                                                     "CenterAlignedTopAppBarExample: " + app.id
                                                 )
-                                                if ((appViewModel.bookmarks.value?.size
-                                                        ?: 0) <= 0
-                                                ) {
+                                                if ((bookmarks.value.size) <= 0) {
                                                     showRemoveIcon = false
                                                 }
                                                 appViewModel.removeBookmark(app.id)
@@ -390,9 +424,9 @@ fun CenterAlignedTopAppBar(
                                                         contentScale = ContentScale.Fit,
                                                         modifier = Modifier.height(48.dp)
                                                     )
-                                                    if (bookmarks.value?.contains(
+                                                    if (bookmarks.value.contains(
                                                             jsonResponse.apps[item].id
-                                                        ) == true
+                                                        )
                                                     ) {
                                                         AsyncImage(
                                                             model = R.drawable.checkmark,
@@ -510,11 +544,16 @@ fun CenterAlignedTopAppBar(
     }
 }
 
+@Composable
+fun RssScreen() {
+    Text("Hi Feed!")
+}
+
 
 //@Preview(showBackground = true)
 //@Composable
 //fun GreetingPreview() {
 //    UofTMobileTheme {
-//        CenterAlignedTopAppBar(AppViewModel(LocalContext.current.applicationContext))
+//        HomeScreen(AppViewModel(LocalContext.current.applicationContext))
 //    }
 //}
