@@ -52,7 +52,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -92,13 +91,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val appViewModel = AppViewModel(application)
         setContent {
-//            UofTMobileTheme {
-//                HomeScreen(
-//                    appViewModel
-//                ) { navController.navigate("home") }
-//            }
             UofTMobileNavHost(
                 application = application
             )
@@ -141,7 +134,7 @@ fun HomeScreen(
     var aboutBottomSheet by remember { mutableStateOf(false) }
     var showRemoveIcon by remember { mutableStateOf(false) }
     val sections by appViewModel.sections().observeAsState()
-    val bookmarks = appViewModel.bookmarks.collectAsState()
+    val bookmarks = appViewModel.bookmarks.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
 
     val context = LocalContext.current
@@ -212,7 +205,7 @@ fun HomeScreen(
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
-                    items(items = bookmarks.value.toList()) { item ->
+                    items(items = bookmarks.value?.toList() ?: emptyList()) { item ->
                         val app = appViewModel.getAppById(item)
                         var tintColor by remember {
                             mutableStateOf(Color(0xFFD0D1C9))
@@ -272,12 +265,18 @@ fun HomeScreen(
                                                 )
                                             )
                                         }, onTap = {
-                                            val url = app.url
-                                            val intent = CustomTabsIntent
-                                                .Builder()
-                                                .build()
-                                            intent.launchUrl(context, Uri.parse(url))
-                                        })
+                                            if (app.id == "newseng") {
+//                                                onNavigateToRssScreen.invoke()
+                                            } else {
+                                                val url = app.url
+                                                val intent = CustomTabsIntent
+                                                    .Builder()
+                                                    .build()
+                                                intent.launchUrl(context, Uri.parse(url))
+                                            }
+
+                                        }
+                                        )
                                     }
                             ) {
                                 Box(
@@ -309,7 +308,9 @@ fun HomeScreen(
                                                     "Remove Button",
                                                     "CenterAlignedTopAppBarExample: " + app.id
                                                 )
-                                                if ((bookmarks.value.size) <= 0) {
+                                                if ((appViewModel.bookmarks.value?.size
+                                                        ?: 0) <= 0
+                                                ) {
                                                     showRemoveIcon = false
                                                 }
                                                 appViewModel.removeBookmark(app.id)
@@ -424,9 +425,9 @@ fun HomeScreen(
                                                         contentScale = ContentScale.Fit,
                                                         modifier = Modifier.height(48.dp)
                                                     )
-                                                    if (bookmarks.value.contains(
+                                                    if (bookmarks.value?.contains(
                                                             jsonResponse.apps[item].id
-                                                        )
+                                                        ) == true
                                                     ) {
                                                         AsyncImage(
                                                             model = R.drawable.checkmark,
