@@ -67,7 +67,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun addBookmark(id: String) {
         if (bookmarks.value?.contains(id) == false) {
             val updateList = bookmarks.value!!.toMutableList()
-            updateList.plus(id)
+            updateList.add(id)
+            bookmarks.value = updateList
             savePreference(updateList)
         } else {
             removeBookmark(id)
@@ -83,7 +84,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun removeBookmark(id: String) {
         val updateList = bookmarks.value!!.toMutableList()
-        updateList.minus(id)
+        updateList.remove(id)
+        bookmarks.value = updateList
         savePreference(updateList)
     }
 
