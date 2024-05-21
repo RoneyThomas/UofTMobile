@@ -44,41 +44,42 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
 
     // Creates DTO from jsonResponse
-    private fun sections(): LiveData<Map<String, SectionsDTO>> = jsonResponse.switchMap { response ->
-        run {
-            val sectionsDTOList: MutableMap<String, SectionsDTO> =
-                emptyMap<String, SectionsDTO>().toMutableMap()
-            jsonResponse.value?.apps?.forEachIndexed { index, app ->
-                run {
-                    if (!sectionsDTOList.contains(jsonResponse.value!!.sections[app.sectionIndex.toInt()].name)) {
-                        sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name] =
-                            SectionsDTO(
-                                jsonResponse.value!!.sections[app.sectionIndex.toInt()].index,
-                                jsonResponse.value!!.sections[app.sectionIndex.toInt()].name,
-                                mutableListOf(index),
-                                mutableListOf()
+    private fun sections(): LiveData<Map<String, SectionsDTO>> =
+        jsonResponse.switchMap { response ->
+            run {
+                val sectionsDTOList: MutableMap<String, SectionsDTO> =
+                    emptyMap<String, SectionsDTO>().toMutableMap()
+                jsonResponse.value?.apps?.forEachIndexed { index, app ->
+                    run {
+                        if (!sectionsDTOList.contains(jsonResponse.value!!.sections[app.sectionIndex.toInt()].name)) {
+                            sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name] =
+                                SectionsDTO(
+                                    jsonResponse.value!!.sections[app.sectionIndex.toInt()].index,
+                                    jsonResponse.value!!.sections[app.sectionIndex.toInt()].name,
+                                    mutableListOf(index),
+                                    mutableListOf()
+                                )
+                        } else {
+                            sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name]?.apps?.add(
+                                index
                             )
-                    } else {
-                        sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name]?.apps?.add(
-                            index
-                        )
+                        }
                     }
                 }
-            }
 
-            // Loads bookmark
-            if (bookmarks.value == null) {
-                val sharedPref = sharedPreferences.getString("bookmarks", "")
-                if (!sharedPref.isNullOrEmpty()) {
-                    bookmarks.postValue(sharedPref.split(",").toList())
-                } else {
-                    bookmarks.postValue(response.mandatoryApps)
-                    savePreference(response.mandatoryApps)
+                // Loads bookmark
+                if (bookmarks.value == null) {
+                    val sharedPref = sharedPreferences.getString("bookmarks", "")
+                    if (!sharedPref.isNullOrEmpty()) {
+                        bookmarks.postValue(sharedPref.split(",").toList())
+                    } else {
+                        bookmarks.postValue(response.mandatoryApps)
+                        savePreference(response.mandatoryApps)
+                    }
                 }
+                return@switchMap MutableLiveData(sectionsDTOList)
             }
-            return@switchMap MutableLiveData(sectionsDTOList)
         }
-    }
 
     fun filteredSections(): LiveData<Map<String, SectionsDTO>> = searchQuery.switchMap { query ->
         val sectionsDTOList: MutableMap<String, SectionsDTO> =
