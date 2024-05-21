@@ -307,21 +307,24 @@ fun HomeScreen(
                                         contentScale = ContentScale.Fit,
                                         modifier = Modifier.height(48.dp)
                                     )
-                                    if (showRemoveIcon) {
-                                        AsyncImage(model = R.drawable.minus,
+                                    if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(app.id)) {
+                                        AsyncImage(
+                                            model = R.drawable.minus,
                                             contentDescription = "Remove Button",
-                                            modifier = Modifier.clickable {
-                                                Log.d(
-                                                    "Remove Button",
-                                                    "CenterAlignedTopAppBarExample: " + app.id
-                                                )
-                                                if ((appViewModel.bookmarks.value?.size
-                                                        ?: 0) <= 0
-                                                ) {
-                                                    showRemoveIcon = false
+                                            modifier = Modifier
+                                                .clickable {
+                                                    Log.d(
+                                                        "Remove Button",
+                                                        "CenterAlignedTopAppBarExample: " + app.id
+                                                    )
+                                                    if ((appViewModel.bookmarks.value?.size
+                                                            ?: 0) <= 0
+                                                    ) {
+                                                        showRemoveIcon = false
+                                                    }
+                                                    appViewModel.removeBookmark(app.id)
                                                 }
-                                                appViewModel.removeBookmark(app.id)
-                                            })
+                                        )
                                     }
                                 }
                                 Text(

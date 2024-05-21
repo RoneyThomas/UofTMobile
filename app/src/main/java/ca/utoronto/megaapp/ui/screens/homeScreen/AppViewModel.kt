@@ -44,7 +44,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
 
     // Creates DTO from jsonResponse
-    fun sections(): LiveData<Map<String, SectionsDTO>> = jsonResponse.switchMap { response ->
+    private fun sections(): LiveData<Map<String, SectionsDTO>> = jsonResponse.switchMap { response ->
         run {
             val sectionsDTOList: MutableMap<String, SectionsDTO> =
                 emptyMap<String, SectionsDTO>().toMutableMap()
