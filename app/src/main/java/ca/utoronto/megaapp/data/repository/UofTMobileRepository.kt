@@ -5,30 +5,21 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import ca.utoronto.megaapp.data.entities.UofTMobile
 import kotlinx.serialization.json.Json
-import okhttp3.Cache
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import okio.IOException
-import java.io.File
 import java.net.ConnectException
 import java.net.UnknownHostException
 
 
-class UofTMobileRepository(context: Context) {
+class UofTMobileRepository(context: Context, client: OkHttpClient) {
 
     private val tag: String = "SitesRepository"
 
     var result: MutableLiveData<UofTMobile> = MutableLiveData<UofTMobile>()
-
-    // Creates OkHttpClient with http caching
-    private val client: OkHttpClient = OkHttpClient.Builder().cache(
-        Cache(
-            directory = File(context.cacheDir, "http_cache"), maxSize = 1L * 1024L * 1024L // 1 MiB
-        )
-    ).build()
 
     init {
         val request = Request.Builder()

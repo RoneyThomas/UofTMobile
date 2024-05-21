@@ -28,18 +28,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
@@ -48,7 +51,9 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -77,6 +82,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.text.HtmlCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -99,6 +105,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @Composable
 fun UofTMobileNavHost(
     modifier: Modifier = Modifier,
@@ -114,10 +121,12 @@ fun UofTMobileNavHost(
             UofTMobileTheme {
                 HomeScreen(
                     appViewModel
-                ) { navController.navigate("home") }
+                ) { navController.navigate("rssScreen") }
             }
         }
-        composable("rssScreen") { RssScreen() }
+        composable("rssScreen") {
+            UofTMobileTheme { RssScreen(appViewModel, navController) }
+        }
     }
 }
 
@@ -152,7 +161,7 @@ fun HomeScreen(
     )
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
         CenterAlignedTopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.surface,
             ),
@@ -266,7 +275,7 @@ fun HomeScreen(
                                             )
                                         }, onTap = {
                                             if (app.id == "newseng") {
-//                                                onNavigateToRssScreen.invoke()
+                                                onNavigateToRssScreen.invoke()
                                             } else {
                                                 val url = app.url
                                                 val intent = CustomTabsIntent
@@ -275,10 +284,8 @@ fun HomeScreen(
                                                 intent.launchUrl(context, Uri.parse(url))
                                             }
 
-                                        }
-                                        )
-                                    }
-                            ) {
+                                        })
+                                    }) {
                                 Box(
                                     Modifier
                                         .padding(16.dp, 16.dp, 16.dp, 8.dp)
@@ -545,9 +552,101 @@ fun HomeScreen(
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RssScreen() {
-    Text("Hi Feed!")
+fun RssScreen(appViewModel: AppViewModel, navController: NavHostController) {
+    val context = LocalContext.current
+    val rssFeed = appViewModel.getRssFeed().observeAsState().value
+    if (rssFeed != null) {
+        Log.d("MainActivity", "RssScreen: " + rssFeed.title)
+        Scaffold(topBar = {
+            TopAppBar(colors = topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = MaterialTheme.colorScheme.surface,
+            ), title = {
+                Text(rssFeed.title.toString())
+            }, navigationIcon = {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        tint = MaterialTheme.colorScheme.surface,
+                        contentDescription = "Back"
+                    )
+                }
+            })
+        }) { innerPadding ->
+//            Column(
+//                modifier = Modifier.padding(innerPadding),
+//                verticalArrangement = Arrangement.spacedBy(16.dp),
+//            ) {
+//                rssFeed.items.forEach { rssItem ->
+//                    Text(
+//                        text = rssDateFormatter(rssItem.pubDate ?: "")
+//                    )
+//                    Text(
+//                        modifier = Modifier.padding(8.dp),
+//                        text = rssItem.title!!,
+//                    )
+//                    Text(text = "by ${rssItem.author}")
+//
+//                    Text(text = "by ${HtmlCompat.fromHtml(rssItem.description!!, HtmlCompat.FROM_HTML_MODE_LEGACY)[0]}")
+//                }
+//            }
+            LazyColumn(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                items(rssFeed.items.size) { item ->
+                    Column(modifier = Modifier.clickable {
+                        val url = rssFeed.items[item].link
+                        val intent = CustomTabsIntent.Builder().build()
+                        intent.launchUrl(context, Uri.parse(url))
+                    }) {
+                        Text(
+                            text = rssDateFormatter(rssFeed.items[item].pubDate ?: ""),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                        Text(
+                            text = rssFeed.items[item].title!!,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        Text(
+                            text = "by ${rssFeed.items[item].author}",
+                            fontWeight = FontWeight.Light,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        val description = HtmlCompat.fromHtml(
+                            rssFeed.items[item].description!!, HtmlCompat.FROM_HTML_MODE_LEGACY
+                        ).toString().split("\n\n")[0]
+                        Text(
+                            text = description, modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        Text(text = "Not Connected to Internet")
+    }
+}
+
+fun rssDateFormatter(s: String): String {
+    while (s.length >= 16) {
+        if (s[5] == '0') {
+            return "${s.substring(8, 11)} ${s.substring(6, 7)}, ${s.substring(12, 16)}"
+        }
+        return "${s.substring(8, 11)} ${s.substring(5, 7)}, ${s.substring(12, 16)}"
+    }
+    return ""
+}
+
+fun rssDescription(s: String) {
+
 }
 
 

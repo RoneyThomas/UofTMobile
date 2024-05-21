@@ -6,23 +6,40 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.liveData
 import androidx.lifecycle.switchMap
 import androidx.preference.PreferenceManager
 import ca.utoronto.megaapp.data.entities.App
 import ca.utoronto.megaapp.data.entities.Section
 import ca.utoronto.megaapp.data.entities.UofTMobile
+import ca.utoronto.megaapp.data.repository.EngRSSRepository
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
 import ca.utoronto.megaapp.ui.SectionsDTO
+import com.prof18.rssparser.model.RssChannel
+import okhttp3.Cache
+import okhttp3.OkHttpClient
+import java.io.File
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val uofTMobileRepository: UofTMobileRepository = UofTMobileRepository(application)
+    // Creates OkHttpClient with http caching
+    val client: OkHttpClient = OkHttpClient.Builder().cache(
+        Cache(
+            directory = File(application.cacheDir, "http_cache"),
+            maxSize = 5L * 1024L * 1024L // 5 MiB
+        )
+    ).build()
+
+    private val uofTMobileRepository: UofTMobileRepository =
+        UofTMobileRepository(application, client)
     private val sharedPreferences: SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(getApplication())
 
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
 
     var bookmarks = MutableLiveData<List<String>>()
+
+    private lateinit var rssFeed: LiveData<RssChannel>
 
 
     // Creates DTO from jsonResponse
@@ -114,6 +131,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         return -1
     }
 
+    fun getRssFeed(): LiveData<RssChannel> {
+        rssFeed = liveData {
+            val data = EngRSSRepository(client).rssChannel()
+            emit(data)
+        }
+        return rssFeed
+    }
 
     private fun <T> MutableList<T>.swap(id1: Int, id2: Int): MutableList<T> = apply {
         val t = this[id1]
