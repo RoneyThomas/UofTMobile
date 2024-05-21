@@ -76,7 +76,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -142,8 +141,9 @@ fun HomeScreen(
     var addBottomSheet by remember { mutableStateOf(false) }
     var aboutBottomSheet by remember { mutableStateOf(false) }
     var showRemoveIcon by remember { mutableStateOf(false) }
-    val sections = appViewModel.sections().observeAsState().value
     val bookmarks = appViewModel.bookmarks.observeAsState().value
+    val searchQuery = appViewModel.searchQuery.observeAsState().value
+    val searchSections = appViewModel.filteredSections().observeAsState().value
     val jsonResponse = appViewModel.jsonResponse.value
 
     val context = LocalContext.current
@@ -369,16 +369,14 @@ fun HomeScreen(
                                 }) {
                                     Text("Done")
                                 }
-                                var text by remember { mutableStateOf(TextFieldValue("")) }
                                 OutlinedTextField(
-                                    value = text, onValueChange = { newText ->
-                                        text = newText
+                                    value = searchQuery ?: "", onValueChange = {
+                                        appViewModel.searchQuery.value = it
                                     }, modifier = Modifier
                                         .padding(
                                             8.dp, 0.dp
                                         )
                                         .weight(1f)
-//                                    .height(36.dp)
                                 )
                                 Button(onClick = {
                                     scope.launch { addSheetState.hide() }.invokeOnCompletion {
@@ -394,61 +392,63 @@ fun HomeScreen(
                                 contentPadding = PaddingValues(
                                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                                 ), content = {
-                                    for (i in 0..<(sections?.size ?: 0)) {
-                                        item(span = { GridItemSpan(maxLineSpan) }) {
-                                            Text(
-                                                sections?.get(i)!!.name,
-                                                fontWeight = FontWeight.Medium,
-                                                fontSize = 16.sp,
-                                                lineHeight = 24.sp
-                                            )
-                                        }
-                                        items(sections?.get(i)!!.apps.toList()) { item ->
-                                            Column(verticalArrangement = Arrangement.Center,
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.clickable {
-                                                    Log.d(
-                                                        "MainActivity",
-                                                        "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
-                                                    )
-                                                    appViewModel.addBookmark(jsonResponse.apps[item].id)
-                                                }) {
-                                                Box(
-                                                    Modifier
-                                                        .padding(16.dp, 16.dp, 16.dp, 8.dp)
-                                                        .size(64.dp)
-                                                        .background(
-                                                            MaterialTheme.colorScheme.primary,
-                                                            RoundedCornerShape(8.dp)
-                                                        ), contentAlignment = Alignment.Center
-                                                ) {
-                                                    AsyncImage(
-                                                        model = context.resources.getIdentifier(
-                                                            jsonResponse?.apps!![item].imageLocalName.lowercase(),
-                                                            "drawable",
-                                                            context.packageName
-                                                        ),
-                                                        contentDescription = "University of Toronto Logo",
-                                                        contentScale = ContentScale.Fit,
-                                                        modifier = Modifier.height(48.dp)
-                                                    )
-                                                    if (bookmarks?.contains(
-                                                            jsonResponse.apps[item].id
-                                                        ) == true
+                                    searchSections!!.forEach { (key, value) ->
+                                        run {
+                                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                                Text(
+                                                    text = key,
+                                                    fontWeight = FontWeight.Medium,
+                                                    fontSize = 16.sp,
+                                                    lineHeight = 24.sp
+                                                )
+                                            }
+                                            items(value.apps.toList()) { item ->
+                                                Column(verticalArrangement = Arrangement.Center,
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    modifier = Modifier.clickable {
+                                                        Log.d(
+                                                            "MainActivity",
+                                                            "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
+                                                        )
+                                                        appViewModel.addBookmark(jsonResponse.apps[item].id)
+                                                    }) {
+                                                    Box(
+                                                        Modifier
+                                                            .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                                            .size(64.dp)
+                                                            .background(
+                                                                MaterialTheme.colorScheme.primary,
+                                                                RoundedCornerShape(8.dp)
+                                                            ), contentAlignment = Alignment.Center
                                                     ) {
                                                         AsyncImage(
-                                                            model = R.drawable.checkmark,
-                                                            contentDescription = "Selected"
+                                                            model = context.resources.getIdentifier(
+                                                                jsonResponse?.apps!![item].imageLocalName.lowercase(),
+                                                                "drawable",
+                                                                context.packageName
+                                                            ),
+                                                            contentDescription = "University of Toronto Logo",
+                                                            contentScale = ContentScale.Fit,
+                                                            modifier = Modifier.height(48.dp)
                                                         )
+                                                        if (bookmarks?.contains(
+                                                                jsonResponse.apps[item].id
+                                                            ) == true
+                                                        ) {
+                                                            AsyncImage(
+                                                                model = R.drawable.checkmark,
+                                                                contentDescription = "Selected"
+                                                            )
+                                                        }
                                                     }
+                                                    Text(
+                                                        text = jsonResponse?.apps!![item].name,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 12.sp,
+                                                        color = Color.Black,
+                                                        textAlign = TextAlign.Center,
+                                                    )
                                                 }
-                                                Text(
-                                                    text = jsonResponse?.apps!![item].name,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 12.sp,
-                                                    color = Color.Black,
-                                                    textAlign = TextAlign.Center,
-                                                )
                                             }
                                         }
                                     }

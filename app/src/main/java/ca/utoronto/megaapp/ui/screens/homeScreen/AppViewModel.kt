@@ -10,7 +10,6 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.switchMap
 import androidx.preference.PreferenceManager
 import ca.utoronto.megaapp.data.entities.App
-import ca.utoronto.megaapp.data.entities.Section
 import ca.utoronto.megaapp.data.entities.UofTMobile
 import ca.utoronto.megaapp.data.repository.EngRSSRepository
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
@@ -23,7 +22,7 @@ import java.io.File
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     // Creates OkHttpClient with http caching
-    val client: OkHttpClient = OkHttpClient.Builder().cache(
+    private val client: OkHttpClient = OkHttpClient.Builder().cache(
         Cache(
             directory = File(application.cacheDir, "http_cache"),
             maxSize = 5L * 1024L * 1024L // 5 MiB
@@ -39,27 +38,31 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     var bookmarks = MutableLiveData<List<String>>()
 
+    var searchQuery = MutableLiveData("")
+
     private lateinit var rssFeed: LiveData<RssChannel>
 
 
     // Creates DTO from jsonResponse
-    fun sections(): LiveData<List<SectionsDTO>> = jsonResponse.switchMap { response ->
+    fun sections(): LiveData<Map<String, SectionsDTO>> = jsonResponse.switchMap { response ->
         run {
-            val sectionsDTOList: MutableList<SectionsDTO> = mutableListOf()
-            response.sections.forEach { section: Section ->
-                sectionsDTOList.add(
-                    SectionsDTO(
-                        section.index,
-                        section.name,
-                        mutableListOf(),
-                        mutableListOf()
-                    )
-                )
-            }
-
-            response.apps.forEachIndexed { index, app: App ->
+            val sectionsDTOList: MutableMap<String, SectionsDTO> =
+                emptyMap<String, SectionsDTO>().toMutableMap()
+            jsonResponse.value?.apps?.forEachIndexed { index, app ->
                 run {
-                    sectionsDTOList[app.sectionIndex.toInt()].apps.add(index)
+                    if (!sectionsDTOList.contains(jsonResponse.value!!.sections[app.sectionIndex.toInt()].name)) {
+                        sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name] =
+                            SectionsDTO(
+                                jsonResponse.value!!.sections[app.sectionIndex.toInt()].index,
+                                jsonResponse.value!!.sections[app.sectionIndex.toInt()].name,
+                                mutableListOf(index),
+                                mutableListOf()
+                            )
+                    } else {
+                        sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name]?.apps?.add(
+                            index
+                        )
+                    }
                 }
             }
 
@@ -73,12 +76,36 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     savePreference(response.mandatoryApps)
                 }
             }
-
-            val sections: LiveData<List<SectionsDTO>> by lazy {
-                MutableLiveData(sectionsDTOList)
-            }
-            return@switchMap sections
+            return@switchMap MutableLiveData(sectionsDTOList)
         }
+    }
+
+    fun filteredSections(): LiveData<Map<String, SectionsDTO>> = searchQuery.switchMap { query ->
+        val sectionsDTOList: MutableMap<String, SectionsDTO> =
+            emptyMap<String, SectionsDTO>().toMutableMap()
+        if (query.isNotBlank()) {
+            jsonResponse.value?.apps?.forEachIndexed { index, app ->
+                run {
+                    if (app.name.contains(query, ignoreCase = true)) {
+                        if (!sectionsDTOList.contains(jsonResponse.value!!.sections[app.sectionIndex.toInt()].name)) {
+                            sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name] =
+                                SectionsDTO(
+                                    jsonResponse.value!!.sections[app.sectionIndex.toInt()].index,
+                                    jsonResponse.value!!.sections[app.sectionIndex.toInt()].name,
+                                    mutableListOf(index),
+                                    mutableListOf()
+                                )
+                        } else {
+                            sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name]?.apps?.add(
+                                index
+                            )
+                        }
+                    }
+                }
+            }
+            return@switchMap MutableLiveData(sectionsDTOList)
+        }
+        return@switchMap sections()
     }
 
     fun addBookmark(id: String) {
