@@ -42,6 +42,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private lateinit var rssFeed: LiveData<RssChannel>
 
+    init {
+        loadApps()
+    }
+
+    fun loadApps() {
+        uofTMobileRepository.loadApps()
+    }
 
     // Creates DTO from jsonResponse
     private fun sections(): LiveData<Map<String, SectionsDTO>> =
@@ -125,6 +132,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             sharedPreferences.edit()
                 .putString("bookmarks", updateList.joinToString(separator = ",")).apply()
         }
+    }
+
+    fun resetBookmarks() {
+        bookmarks.value = jsonResponse.value?.mandatoryApps
+        savePreference(jsonResponse.value?.mandatoryApps)
     }
 
     fun removeBookmark(id: String) {

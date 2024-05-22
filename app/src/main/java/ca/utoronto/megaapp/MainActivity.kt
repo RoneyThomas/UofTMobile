@@ -340,7 +340,6 @@ fun HomeScreen(
                     }
                 })
 
-
             AsyncImage(
                 model = R.drawable.background,
                 contentDescription = "UofT Logo",
@@ -348,7 +347,6 @@ fun HomeScreen(
                     .align(Alignment.Center)
                     .height(256.dp)
             )
-
 
             if (addBottomSheet) {
                 ModalBottomSheet(
@@ -523,12 +521,12 @@ fun HomeScreen(
                             modifier = Modifier.padding(top = 8.dp)
                         )
                         Button(onClick = {
-
+                            appViewModel.resetBookmarks()
                         }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                             Text("Reset U of T Mobile")
                         }
                         Button(onClick = {
-
+                            appViewModel.loadApps()
                         }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                             Text("Refresh Index")
                         }

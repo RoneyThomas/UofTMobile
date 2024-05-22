@@ -15,16 +15,16 @@ import java.net.ConnectException
 import java.net.UnknownHostException
 
 
-class UofTMobileRepository(context: Context, client: OkHttpClient) {
+class UofTMobileRepository(val context: Context, private val client: OkHttpClient) {
 
     private val tag: String = "SitesRepository"
 
     var result: MutableLiveData<UofTMobile> = MutableLiveData<UofTMobile>()
 
-    init {
-        val request = Request.Builder()
-            .url("https://uoft-mobile.s3.ca-central-1.amazonaws.com/UofTMobile.JSON").build()
+    private val request: Request = Request.Builder()
+        .url("https://uoft-mobile.s3.ca-central-1.amazonaws.com/UofTMobile.JSON").build()
 
+    fun loadApps() {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 when (e) {
