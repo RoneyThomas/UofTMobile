@@ -71,7 +71,9 @@ import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.DragAndDropTransferData
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -308,11 +310,9 @@ fun HomeScreen(
                                         modifier = Modifier.height(48.dp)
                                     )
                                     if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(app.id)) {
-                                        AsyncImage(
-                                            model = R.drawable.minus,
+                                        AsyncImage(model = R.drawable.minus,
                                             contentDescription = "Remove Button",
-                                            modifier = Modifier
-                                                .clickable {
+                                            modifier = Modifier.clickable {
                                                     Log.d(
                                                         "Remove Button",
                                                         "CenterAlignedTopAppBarExample: " + app.id
@@ -323,16 +323,20 @@ fun HomeScreen(
                                                         showRemoveIcon = false
                                                     }
                                                     appViewModel.removeBookmark(app.id)
-                                                }
-                                        )
+                                                })
                                     }
                                 }
                                 Text(
                                     text = app.name,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    color = Color.Black,
                                     textAlign = TextAlign.Center,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        shadow = Shadow(
+                                            color = Color.Black,
+                                            offset = Offset(2f, 2f),
+                                            blurRadius = 4f
+                                        )
+                                    )
                                 )
                             }
                         }
@@ -347,6 +351,8 @@ fun HomeScreen(
                     .align(Alignment.Center)
                     .height(256.dp)
             )
+
+
 
             if (addBottomSheet) {
                 ModalBottomSheet(

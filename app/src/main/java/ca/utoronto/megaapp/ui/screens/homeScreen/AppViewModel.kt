@@ -135,6 +135,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun resetBookmarks() {
+        client.cache?.evictAll()
         bookmarks.value = jsonResponse.value?.mandatoryApps
         savePreference(jsonResponse.value?.mandatoryApps)
     }
