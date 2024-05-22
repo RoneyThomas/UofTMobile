@@ -37,6 +37,13 @@ android {
     kotlinOptions {
         jvmTarget = "19"
     }
+    kotlin {
+        sourceSets.all {
+            languageSettings {
+                languageVersion = "2.0"
+            }
+        }
+    }
     buildFeatures {
         compose = true
     }
