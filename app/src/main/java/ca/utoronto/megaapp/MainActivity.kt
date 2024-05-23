@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -71,6 +72,7 @@ import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.DragAndDropTransferData
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -146,6 +148,7 @@ fun HomeScreen(
     val bookmarks = appViewModel.bookmarks.observeAsState().value
     val searchQuery = appViewModel.searchQuery.observeAsState().value
     val searchSections = appViewModel.filteredSections().observeAsState().value
+    val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
 
     val context = LocalContext.current
@@ -313,17 +316,17 @@ fun HomeScreen(
                                         AsyncImage(model = R.drawable.minus,
                                             contentDescription = "Remove Button",
                                             modifier = Modifier.clickable {
-                                                    Log.d(
-                                                        "Remove Button",
-                                                        "CenterAlignedTopAppBarExample: " + app.id
-                                                    )
-                                                    if ((appViewModel.bookmarks.value?.size
-                                                            ?: 0) <= 0
-                                                    ) {
-                                                        showRemoveIcon = false
-                                                    }
-                                                    appViewModel.removeBookmark(app.id)
-                                                })
+                                                Log.d(
+                                                    "Remove Button",
+                                                    "CenterAlignedTopAppBarExample: " + app.id
+                                                )
+                                                if ((appViewModel.bookmarks.value?.size
+                                                        ?: 0) <= 0
+                                                ) {
+                                                    showRemoveIcon = false
+                                                }
+                                                appViewModel.removeBookmark(app.id)
+                                            })
                                     }
                                 }
                                 Text(
@@ -344,8 +347,31 @@ fun HomeScreen(
                     }
                 })
 
+            if (showBookmarkInstructions.value == true) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(8.dp)
+                        .clip(shape = RoundedCornerShape(8.dp))
+                        .background(Color(0XCC1E3765))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp, 8.dp)) {
+                        Text(
+                            "To get started, simply click the + symbol in the bottom left corner to access to list of bookmarks from UofT.",
+                            color = Color.White
+                        )
+                        Row {
+                            Spacer(Modifier.weight(1.0f))
+                            Button(onClick = { appViewModel.hideBookmarkInstructions() }) {
+                                Text(text = "Dismiss")
+                            }
+                        }
 
-//            Text("sdfsdf", modifier = Modifier.)
+                    }
+                }
+            }
+
+
 
             AsyncImage(
                 model = R.drawable.background,
@@ -402,7 +428,7 @@ fun HomeScreen(
                                 contentPadding = PaddingValues(
                                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                                 ), content = {
-                                    searchSections!!.forEach { (key, value) ->
+                                    searchSections?.forEach { (key, value) ->
                                         run {
                                             item(span = { GridItemSpan(maxLineSpan) }) {
                                                 Text(

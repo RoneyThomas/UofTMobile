@@ -34,6 +34,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val sharedPreferences: SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(getApplication())
 
+    val showBookmarkInstructions = MutableLiveData(false)
+
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
 
     var bookmarks = MutableLiveData<List<String>>()
@@ -44,6 +46,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadApps()
+        showBookmarkInstructions.value =
+            sharedPreferences.getBoolean("showBookmarkInstructions", true)
     }
 
     fun loadApps() {
@@ -138,6 +142,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         client.cache?.evictAll()
         bookmarks.value = jsonResponse.value?.mandatoryApps
         savePreference(jsonResponse.value?.mandatoryApps)
+        showBookmarkInstructions.value = true
+        sharedPreferences.edit()
+            .putBoolean("showBookmarkInstructions", true).apply()
     }
 
     fun removeBookmark(id: String) {
@@ -163,6 +170,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getAppById(id: String): App? {
         return jsonResponse.value?.apps?.single { app: App -> app.id == id }
+    }
+
+    fun hideBookmarkInstructions() {
+        showBookmarkInstructions.value = false
+        sharedPreferences.edit()
+            .putBoolean("showBookmarkInstructions", false).apply()
     }
 
     private fun getAppIndex(id: String): Int {
