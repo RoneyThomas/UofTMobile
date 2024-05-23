@@ -55,6 +55,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -73,18 +74,19 @@ import androidx.compose.ui.draganddrop.DragAndDropTransferData
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.core.text.HtmlCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -145,12 +147,12 @@ fun HomeScreen(
     var addBottomSheet by remember { mutableStateOf(false) }
     var aboutBottomSheet by remember { mutableStateOf(false) }
     var showRemoveIcon by remember { mutableStateOf(false) }
+    val refresh = appViewModel.refresh.observeAsState().value
     val bookmarks = appViewModel.bookmarks.observeAsState().value
     val searchQuery = appViewModel.searchQuery.observeAsState().value
     val searchSections = appViewModel.filteredSections().observeAsState().value
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
-
     val context = LocalContext.current
 
     var appId by remember {
@@ -207,14 +209,24 @@ fun HomeScreen(
                 })
         }
     }) { innerPadding ->
-        Box(
+        PullToRefreshBox(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .background(color = Color(0xFFD0D1C9))
+                .background(
+                    color = Color(0xFFD0D1C9)
+                )
+                .paint(
+                    painterResource(id = R.drawable.background), contentScale = ContentScale.Fit
+                ),
+            isRefreshing = refresh ?: false,
+//            isRefreshing = true,
+            onRefresh = {
+                appViewModel.refresh()
+            },
         ) {
-
-            LazyVerticalGrid(columns = GridCells.Adaptive(80.dp), Modifier.zIndex(1f),
+            LazyVerticalGrid(columns = GridCells.Adaptive(80.dp),
+//                Modifier.zIndex(1f),
                 // content padding
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
@@ -312,7 +324,10 @@ fun HomeScreen(
                                         contentScale = ContentScale.Fit,
                                         modifier = Modifier.height(48.dp)
                                     )
-                                    if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(app.id)) {
+                                    if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
+                                            app.id
+                                        )
+                                    ) {
                                         AsyncImage(model = R.drawable.minus,
                                             contentDescription = "Remove Button",
                                             modifier = Modifier.clickable {
@@ -372,15 +387,14 @@ fun HomeScreen(
             }
 
 
-
-            AsyncImage(
-                model = R.drawable.background,
-                contentDescription = "UofT Logo",
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .height(256.dp)
-            )
-
+//            AsyncImage(
+//                model = R.drawable.background,
+//                contentDescription = "UofT Logo",
+//                modifier = Modifier
+//                    .align(Alignment.Center)
+//                    .height(256.dp)
+//                    .zIndex(0f)
+//            )
 
 
             if (addBottomSheet) {
@@ -561,7 +575,7 @@ fun HomeScreen(
                             Text("Reset U of T Mobile")
                         }
                         Button(onClick = {
-                            appViewModel.loadApps()
+                            appViewModel.refresh()
                         }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                             Text("Refresh Index")
                         }

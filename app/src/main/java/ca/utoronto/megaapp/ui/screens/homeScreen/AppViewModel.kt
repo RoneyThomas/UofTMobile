@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import ca.utoronto.megaapp.data.entities.App
 import ca.utoronto.megaapp.data.entities.UofTMobile
@@ -15,6 +16,8 @@ import ca.utoronto.megaapp.data.repository.EngRSSRepository
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
 import ca.utoronto.megaapp.ui.SectionsDTO
 import com.prof18.rssparser.model.RssChannel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File
@@ -41,17 +44,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     var bookmarks = MutableLiveData<List<String>>()
 
     var searchQuery = MutableLiveData("")
+    var refresh = MutableLiveData(false)
 
     private lateinit var rssFeed: LiveData<RssChannel>
 
     init {
         loadApps()
-        showBookmarkInstructions.value =
-            sharedPreferences.getBoolean("showBookmarkInstructions", true)
     }
 
     fun loadApps() {
         uofTMobileRepository.loadApps()
+        showBookmarkInstructions.value =
+            sharedPreferences.getBoolean("showBookmarkInstructions", true)
+    }
+
+    fun refresh() {
+        refresh.value = true
+        loadApps()
+        viewModelScope.launch {
+            delay(400)
+            refresh.value = false
+        }
     }
 
     // Creates DTO from jsonResponse
