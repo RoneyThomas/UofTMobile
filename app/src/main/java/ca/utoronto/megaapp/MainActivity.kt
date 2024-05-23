@@ -334,7 +334,7 @@ fun HomeScreen(
                                         shadow = Shadow(
                                             color = Color.Black,
                                             offset = Offset(2f, 2f),
-                                            blurRadius = 4f
+                                            blurRadius = 8f
                                         )
                                     )
                                 )
@@ -343,6 +343,9 @@ fun HomeScreen(
 
                     }
                 })
+
+
+//            Text("sdfsdf", modifier = Modifier.)
 
             AsyncImage(
                 model = R.drawable.background,

@@ -20,7 +20,7 @@ lifecycleExtensions = "2.2.0"
 preferenceKtx = "1.2.1"
 navigationCompose = "2.8.0-beta01"
 rssparser = "6.0.7"
-reorderable = "2.1.0"
+reorderable = "2.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
