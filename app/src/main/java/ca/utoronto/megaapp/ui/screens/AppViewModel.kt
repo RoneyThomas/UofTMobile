@@ -1,4 +1,4 @@
-package ca.utoronto.megaapp.ui.screens.homeScreen
+package ca.utoronto.megaapp.ui.screens
 
 import android.app.Application
 import android.content.SharedPreferences

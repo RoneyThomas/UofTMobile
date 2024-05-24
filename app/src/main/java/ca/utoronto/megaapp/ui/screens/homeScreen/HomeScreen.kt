@@ -1,18 +1,12 @@
 package ca.utoronto.megaapp.ui.screens.homeScreen
 
-import android.content.ClipData
-import android.content.ClipDescription
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.draganddrop.dragAndDropSource
-import androidx.compose.foundation.draganddrop.dragAndDropTarget
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +22,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -59,11 +55,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draganddrop.DragAndDropEvent
-import androidx.compose.ui.draganddrop.DragAndDropTarget
-import androidx.compose.ui.draganddrop.DragAndDropTransferData
-import androidx.compose.ui.draganddrop.mimeTypes
-import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.Offset
@@ -79,8 +70,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ca.utoronto.megaapp.R
+import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyGridState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -100,11 +94,12 @@ fun HomeScreen(
     val searchSections = appViewModel.filteredSections().observeAsState().value
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
-    val context = LocalContext.current
-
-    var appId by remember {
-        mutableStateOf("")
+    val lazyGridState = rememberLazyGridState()
+    val reorderableLazyGridState = rememberReorderableLazyGridState(lazyGridState) { from, to ->
+        // Update the list
+        Log.d("HomeScreen", "HomeScreen: $from, $to")
     }
+    val context = LocalContext.current
 
     val navItemColor = NavigationBarItemDefaults.colors(
         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -175,134 +170,90 @@ fun HomeScreen(
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
-                    items(items = bookmarks?.toList() ?: emptyList()) { item ->
-                        val app = appViewModel.getAppById(item)
-                        var tintColor by remember {
-                            mutableStateOf(Color(0xFFD0D1C9))
-                        }
-                        if (app != null) {
-                            Column(verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .dragAndDropTarget(shouldStartDragAndDrop = { event ->
-                                        event
-                                            .mimeTypes()
-                                            .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
-                                    }, target = object : DragAndDropTarget {
-                                        override fun onDrop(event: DragAndDropEvent): Boolean {
-                                            val draggedData =
-                                                event.toAndroidDragEvent().clipData.getItemAt(0).text
-                                            appId = draggedData.toString()
-                                            Log.d(
-                                                "MainActivity", "onDrop: dropped $appId on $item"
-                                            )
-                                            appViewModel.swapBookmark(item, appId)
-                                            return true
+                    itemsIndexed(
+                        items = bookmarks?.toList() ?: emptyList(),
+                        key = { _, item -> item }
+                    ) { index, item ->
+                        ReorderableItem(
+                            reorderableLazyGridState,
+                            key = item
+                        ) { isDragging ->
+                            val app = appViewModel.getAppById(item)
+//                            var tintColor by remember {
+//                                mutableStateOf(Color(0xFFD0D1C9))
+//                            }
+                            if (app != null) {
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.clickable {
+                                        if (app.id == "newseng") {
+                                            onNavigateToRssScreen.invoke()
+                                        } else {
+                                            val url = app.url
+                                            val intent = CustomTabsIntent
+                                                .Builder()
+                                                .build()
+                                            intent.launchUrl(context, Uri.parse(url))
                                         }
-
-                                        override fun onEntered(event: DragAndDropEvent) {
-                                            super.onEntered(event)
-                                            Log.d(
-                                                "MainActivity", "onEntered: selected $item"
-                                            )
-                                            tintColor = Color(0xff6FC7EA)
-                                        }
-
-                                        override fun onEnded(event: DragAndDropEvent) {
-                                            super.onEntered(event)
-                                            Log.d(
-                                                "MainActivity", "onEnded: selected $item"
-                                            )
-                                            tintColor = Color(0xFFD0D1C9)
-                                        }
-
-                                        override fun onExited(event: DragAndDropEvent) {
-                                            super.onEntered(event)
-                                            Log.d(
-                                                "MainActivity", "onExited: selected $item"
-                                            )
-                                            tintColor = Color(0xFFD0D1C9)
-                                        }
-
-                                    })
-                                    .dragAndDropSource {
-                                        detectTapGestures(onLongPress = {
-                                            startTransfer(
-                                                DragAndDropTransferData(
-                                                    ClipData.newPlainText(
-                                                        "appId", item
-                                                    )
-                                                )
-                                            )
-                                        }, onTap = {
-                                            if (app.id == "newseng") {
-                                                onNavigateToRssScreen.invoke()
-                                            } else {
-                                                val url = app.url
-                                                val intent = CustomTabsIntent
-                                                    .Builder()
-                                                    .build()
-                                                intent.launchUrl(context, Uri.parse(url))
-                                            }
-
-                                        })
-                                    }) {
-                                Box(
-                                    Modifier
-                                        .padding(16.dp, 16.dp, 16.dp, 8.dp)
-                                        .size(64.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.primary,
-                                            RoundedCornerShape(8.dp)
-                                        )
-                                        .border(2.dp, tintColor, RoundedCornerShape(8.dp)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AsyncImage(
-                                        model = context.resources.getIdentifier(
-                                            app.imageLocalName.lowercase(),
-                                            "drawable",
-                                            context.packageName
-                                        ),
-                                        contentDescription = "University of Toronto Logo",
-                                        contentScale = ContentScale.Fit,
-                                        modifier = Modifier.height(48.dp)
-                                    )
-                                    if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
-                                            app.id
-                                        )
-                                    ) {
-                                        AsyncImage(model = R.drawable.minus,
-                                            contentDescription = "Remove Button",
-                                            modifier = Modifier.clickable {
-                                                Log.d(
-                                                    "Remove Button",
-                                                    "CenterAlignedTopAppBarExample: " + app.id
-                                                )
-                                                if ((appViewModel.bookmarks.value?.size
-                                                        ?: 0) <= 0
-                                                ) {
-                                                    showRemoveIcon = false
-                                                }
-                                                appViewModel.removeBookmark(app.id)
-                                            })
                                     }
-                                }
-                                Text(
-                                    text = app.name,
-                                    textAlign = TextAlign.Center,
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        shadow = Shadow(
-                                            color = Color.Black,
-                                            offset = Offset(2f, 2f),
-                                            blurRadius = 8f
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                            .size(64.dp)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary,
+                                                RoundedCornerShape(8.dp)
+                                            ),
+//                                            .border(2.dp, tintColor, RoundedCornerShape(8.dp)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = context.resources.getIdentifier(
+                                                app.imageLocalName.lowercase(),
+                                                "drawable",
+                                                context.packageName
+                                            ),
+                                            contentDescription = "University of Toronto Logo",
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier.height(48.dp)
+                                        )
+                                        if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
+                                                app.id
+                                            )
+                                        ) {
+                                            AsyncImage(model = R.drawable.minus,
+                                                contentDescription = "Remove Button",
+                                                modifier = Modifier.clickable {
+                                                    Log.d(
+                                                        "Remove Button",
+                                                        "CenterAlignedTopAppBarExample: " + app.id
+                                                    )
+                                                    if ((appViewModel.bookmarks.value?.size
+                                                            ?: 0) <= 0
+                                                    ) {
+                                                        showRemoveIcon = false
+                                                    }
+                                                    appViewModel.removeBookmark(app.id)
+                                                })
+                                        }
+                                    }
+                                    Text(
+                                        text = app.name,
+                                        textAlign = TextAlign.Center,
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            shadow = Shadow(
+                                                color = Color.Black,
+                                                offset = Offset(2f, 2f),
+                                                blurRadius = 8f
+                                            )
                                         )
                                     )
-                                )
+                                }
                             }
                         }
-
                     }
                 })
 

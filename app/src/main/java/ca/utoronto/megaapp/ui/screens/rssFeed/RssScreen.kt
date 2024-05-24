@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
 import androidx.navigation.NavHostController
-import ca.utoronto.megaapp.ui.screens.homeScreen.AppViewModel
+import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.util.rssDateFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
