@@ -16,11 +16,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -103,6 +106,7 @@ fun HomeScreen(
 
     val reorderableLazyGridState = rememberReorderableLazyGridState(
         lazyGridState,
+        scrollThresholdPadding = WindowInsets.systemBars.asPaddingValues(),
     ) { from, to ->
         // Update the list
         Log.d("HomeScreen", "HomeScreen: ${from.index}, ${to.index}")
@@ -182,50 +186,42 @@ fun HomeScreen(
                 state = lazyGridState,
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
-                ), content = {
-                    items(
-                        items = bookmarks?.toList() ?: emptyList(),
-                        key = { it }
-                    ) {
+                ),
+                content = {
+                    items(items = bookmarks?.toList() ?: emptyList(), key = { it }) {
                         ReorderableItem(
-                            reorderableLazyGridState,
-                            key = it
+                            reorderableLazyGridState, key = it
                         ) { isDragging ->
                             val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
                             val app = appViewModel.getAppById(it)
                             if (app != null) {
-                                Surface(shadowElevation = elevation) {
-                                    Column(
-                                        verticalArrangement = Arrangement.Center,
+                                Surface(
+                                    shadowElevation = elevation, color = Color.Transparent
+                                ) {
+                                    Column(verticalArrangement = Arrangement.Center,
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier
-                                            .draggableHandle(
-                                                onDragStarted = {
-                                                    view.performHapticFeedback(
-                                                        HapticFeedbackConstants.DRAG_START
-                                                    )
-                                                },
-                                                onDragStopped = {
-                                                    view.performHapticFeedback(
-                                                        HapticFeedbackConstants.GESTURE_END
-                                                    )
-                                                })
-                                            .clickable {
-                                                if (app.id == "newseng") {
-                                                    onNavigateToRssScreen.invoke()
-                                                } else {
-                                                    val url = app.url
-                                                    val intent = CustomTabsIntent
-                                                        .Builder()
-                                                        .build()
-                                                    intent.launchUrl(context, Uri.parse(url))
-                                                }
+                                        modifier = Modifier.clickable {
+                                            if (app.id == "newseng") {
+                                                onNavigateToRssScreen.invoke()
+                                            } else {
+                                                val url = app.url
+                                                val intent = CustomTabsIntent.Builder().build()
+                                                intent.launchUrl(context, Uri.parse(url))
                                             }
-                                    ) {
+                                        }) {
                                         Box(
                                             Modifier
                                                 .padding(16.dp, 16.dp, 16.dp, 8.dp)
                                                 .size(64.dp)
+                                                .draggableHandle(onDragStarted = {
+                                                    view.performHapticFeedback(
+                                                        HapticFeedbackConstants.DRAG_START
+                                                    )
+                                                }, onDragStopped = {
+                                                    view.performHapticFeedback(
+                                                        HapticFeedbackConstants.GESTURE_END
+                                                    )
+                                                })
                                                 .background(
                                                     MaterialTheme.colorScheme.primary,
                                                     RoundedCornerShape(8.dp)
