@@ -167,15 +167,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         savePreference(updateList)
     }
 
-    fun swapBookmark(id1: String, id2: String) {
-        Log.d("AppViewModel", "i1: $id1, i2: $id2")
+    fun swapBookmark(i1: Int, i2: Int) {
+        Log.d("AppViewModel", "i1: $i1, i2: $i2")
         Log.d("AppViewModel", "${bookmarks.value?.toMutableList()}")
         val updateList = bookmarks.value!!.toMutableList()
         Log.d("AppViewModel", updateList.toString())
-        val i1 = updateList.indexOf(id1)
-        val i2 = updateList.indexOf(id2)
+        val x = updateList[i2]
         updateList.removeAt(i2)
-        updateList.add(i1, id2)
+        updateList.add(i1, x)
         bookmarks.value = updateList
         Log.d("AppViewModel", "${bookmarks.value?.toMutableList()}")
         savePreference(updateList)

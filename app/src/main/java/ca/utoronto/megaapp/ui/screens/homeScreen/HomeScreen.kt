@@ -2,8 +2,11 @@ package ca.utoronto.megaapp.ui.screens.homeScreen
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +25,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,6 +41,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
@@ -63,6 +66,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -95,9 +99,17 @@ fun HomeScreen(
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
     val lazyGridState = rememberLazyGridState()
-    val reorderableLazyGridState = rememberReorderableLazyGridState(lazyGridState) { from, to ->
+    val view = LocalView.current
+
+    val reorderableLazyGridState = rememberReorderableLazyGridState(
+        lazyGridState,
+    ) { from, to ->
         // Update the list
-        Log.d("HomeScreen", "HomeScreen: $from, $to")
+        Log.d("HomeScreen", "HomeScreen: ${from.index}, ${to.index}")
+        appViewModel.swapBookmark(to.index, from.index)
+        if (Build.VERSION.SDK_INT >= 34) {
+            view.performHapticFeedback(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
+        }
     }
     val context = LocalContext.current
 
@@ -167,90 +179,103 @@ fun HomeScreen(
             },
         ) {
             LazyVerticalGrid(columns = GridCells.Adaptive(80.dp),
+                state = lazyGridState,
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ), content = {
-                    itemsIndexed(
+                    items(
                         items = bookmarks?.toList() ?: emptyList(),
-                        key = { _, item -> item }
-                    ) { index, item ->
+                        key = { it }
+                    ) {
                         ReorderableItem(
                             reorderableLazyGridState,
-                            key = item
+                            key = it
                         ) { isDragging ->
-                            val app = appViewModel.getAppById(item)
-//                            var tintColor by remember {
-//                                mutableStateOf(Color(0xFFD0D1C9))
-//                            }
+                            val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
+                            val app = appViewModel.getAppById(it)
                             if (app != null) {
-                                Column(
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.clickable {
-                                        if (app.id == "newseng") {
-                                            onNavigateToRssScreen.invoke()
-                                        } else {
-                                            val url = app.url
-                                            val intent = CustomTabsIntent
-                                                .Builder()
-                                                .build()
-                                            intent.launchUrl(context, Uri.parse(url))
-                                        }
-                                    }
-                                ) {
-                                    Box(
-                                        Modifier
-                                            .padding(16.dp, 16.dp, 16.dp, 8.dp)
-                                            .size(64.dp)
-                                            .background(
-                                                MaterialTheme.colorScheme.primary,
-                                                RoundedCornerShape(8.dp)
-                                            ),
-//                                            .border(2.dp, tintColor, RoundedCornerShape(8.dp)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        AsyncImage(
-                                            model = context.resources.getIdentifier(
-                                                app.imageLocalName.lowercase(),
-                                                "drawable",
-                                                context.packageName
-                                            ),
-                                            contentDescription = "University of Toronto Logo",
-                                            contentScale = ContentScale.Fit,
-                                            modifier = Modifier.height(48.dp)
-                                        )
-                                        if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
-                                                app.id
-                                            )
-                                        ) {
-                                            AsyncImage(model = R.drawable.minus,
-                                                contentDescription = "Remove Button",
-                                                modifier = Modifier.clickable {
-                                                    Log.d(
-                                                        "Remove Button",
-                                                        "CenterAlignedTopAppBarExample: " + app.id
+                                Surface(shadowElevation = elevation) {
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier
+                                            .draggableHandle(
+                                                onDragStarted = {
+                                                    view.performHapticFeedback(
+                                                        HapticFeedbackConstants.DRAG_START
                                                     )
-                                                    if ((appViewModel.bookmarks.value?.size
-                                                            ?: 0) <= 0
-                                                    ) {
-                                                        showRemoveIcon = false
-                                                    }
-                                                    appViewModel.removeBookmark(app.id)
+                                                },
+                                                onDragStopped = {
+                                                    view.performHapticFeedback(
+                                                        HapticFeedbackConstants.GESTURE_END
+                                                    )
                                                 })
+                                            .clickable {
+                                                if (app.id == "newseng") {
+                                                    onNavigateToRssScreen.invoke()
+                                                } else {
+                                                    val url = app.url
+                                                    val intent = CustomTabsIntent
+                                                        .Builder()
+                                                        .build()
+                                                    intent.launchUrl(context, Uri.parse(url))
+                                                }
+                                            }
+                                    ) {
+                                        Box(
+                                            Modifier
+                                                .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                                                .size(64.dp)
+                                                .background(
+                                                    MaterialTheme.colorScheme.primary,
+                                                    RoundedCornerShape(8.dp)
+                                                ),
+//                                            .border(2.dp, tintColor, RoundedCornerShape(8.dp)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            AsyncImage(
+                                                model = context.resources.getIdentifier(
+                                                    app.imageLocalName.lowercase(),
+                                                    "drawable",
+                                                    context.packageName
+                                                ),
+                                                contentDescription = "University of Toronto Logo",
+                                                contentScale = ContentScale.Fit,
+                                                modifier = Modifier.height(48.dp)
+                                            )
+                                            if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
+                                                    app.id
+                                                )
+                                            ) {
+                                                AsyncImage(model = R.drawable.minus,
+                                                    contentDescription = "Remove Button",
+                                                    modifier = Modifier.clickable {
+                                                        Log.d(
+                                                            "Remove Button",
+                                                            "CenterAlignedTopAppBarExample: " + app.id
+                                                        )
+                                                        if ((appViewModel.bookmarks.value?.size
+                                                                ?: 0) <= 0
+                                                        ) {
+                                                            showRemoveIcon = false
+                                                        }
+                                                        appViewModel.removeBookmark(app.id)
+                                                    })
+                                            }
                                         }
-                                    }
-                                    Text(
-                                        text = app.name,
-                                        textAlign = TextAlign.Center,
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                            shadow = Shadow(
-                                                color = Color.Black,
-                                                offset = Offset(2f, 2f),
-                                                blurRadius = 8f
+                                        Text(
+                                            text = app.name,
+                                            textAlign = TextAlign.Center,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.bodyLarge.copy(
+                                                shadow = Shadow(
+                                                    color = Color.Black,
+                                                    offset = Offset(2f, 2f),
+                                                    blurRadius = 8f
+                                                )
                                             )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }
