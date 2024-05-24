@@ -52,7 +52,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         loadApps()
     }
 
-    fun loadApps() {
+    private fun loadApps() {
         uofTMobileRepository.loadApps()
         showBookmarkInstructions.value =
             sharedPreferences.getBoolean("showBookmarkInstructions", true)
@@ -191,33 +191,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             .putBoolean("showBookmarkInstructions", false).apply()
     }
 
-    private fun getAppIndex(id: String): Int {
-        jsonResponse.value?.apps?.forEachIndexed { index, app ->
-            if (app.id == id) return index
-        }
-        return -1
-    }
-
     fun getRssFeed(): LiveData<RssChannel> {
         rssFeed = liveData {
             val data = EngRSSRepository(client).rssChannel()
-            emit(data)
+            if (data != null) {
+                emit(data)
+            }
         }
         return rssFeed
     }
-
-    private fun <T> MutableList<T>.swap(id1: Int, id2: Int): MutableList<T> = apply {
-        val t = this[id1]
-        this[id1] = this[id2]
-        this[id2] = t
-    }
-
-//    fun searchApps(query: String) {
-//        val searchSectionsDTO: MutableList<SectionsDTO> = mutableListOf()
-//        jsonResponse.value?.apps?.forEach {
-//            if (it.name.contains(query, ignoreCase = true)){
-//                searchSectionsDTO.add()
-//            }
-//        }
-//    }
 }
