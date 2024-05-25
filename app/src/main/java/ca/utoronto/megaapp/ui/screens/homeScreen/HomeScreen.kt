@@ -2,32 +2,38 @@ package ca.utoronto.megaapp.ui.screens.homeScreen
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.util.Log
-import android.view.HapticFeedbackConstants
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -52,6 +58,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -64,26 +71,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toOffset
+import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.zIndex
 import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.screens.AppViewModel
-import coil.compose.AsyncImage
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.rememberReorderableLazyGridState
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
+    ExperimentalGlideComposeApi::class
+)
 @Composable
 fun HomeScreen(
     appViewModel: AppViewModel, onNavigateToRssScreen: () -> Unit
@@ -101,20 +121,25 @@ fun HomeScreen(
     val searchSections = appViewModel.filteredSections().observeAsState().value
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
-    val lazyGridState = rememberLazyGridState()
-    val view = LocalView.current
 
-    val reorderableLazyGridState = rememberReorderableLazyGridState(
-        lazyGridState,
-        scrollThresholdPadding = WindowInsets.systemBars.asPaddingValues(),
-    ) { from, to ->
-        // Update the list
-        Log.d("HomeScreen", "HomeScreen: ${from.index}, ${to.index}")
-        appViewModel.swapBookmark(to.index, from.index)
-        if (Build.VERSION.SDK_INT >= 34) {
-            view.performHapticFeedback(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
-        }
+    val gridState = rememberLazyGridState()
+//    val view = LocalView.current
+
+    val dragDropState = rememberGridDragDropState(gridState) { fromIndex, toIndex ->
+        appViewModel.swapBookmark(toIndex, fromIndex)
+//        list = list.toMutableList().apply {
+//            add(toIndex, removeAt(fromIndex))
+//        }
     }
+
+//    val dragDropState = rememberLazyGridState(gridState) { from, to ->
+//        // Update the list
+//        Log.d("HomeScreen", "HomeScreen: ${from.index}, ${to.index}")
+//        appViewModel.swapBookmark(to.index, from.index)
+////        if (Build.VERSION.SDK_INT >= 34) {
+////            view.performHapticFeedback(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
+////        }
+//    }
     val context = LocalContext.current
 
     val navItemColor = NavigationBarItemDefaults.colors(
@@ -131,12 +156,14 @@ fun HomeScreen(
                 titleContentColor = MaterialTheme.colorScheme.surface,
             ),
             title = {
-                AsyncImage(
+                GlideImage(
                     model = R.drawable.uoftcrst_stacked_white_use_only_on_655,
                     contentDescription = "University of Toronto Logo",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.height(48.dp)
-                )
+                ) {
+                    it.diskCacheStrategy(DiskCacheStrategy.ALL)
+                }
             },
         )
     }, bottomBar = {
@@ -182,18 +209,23 @@ fun HomeScreen(
                 appViewModel.refresh()
             },
         ) {
-            LazyVerticalGrid(columns = GridCells.Adaptive(80.dp),
-                state = lazyGridState,
+            LazyVerticalGrid(columns = GridCells.Fixed(4),
+                modifier = Modifier.dragContainer(dragDropState),
+                state = gridState,
+//                contentPadding = PaddingValues(16.dp),
+//                verticalArrangement = Arrangement.spacedBy(16.dp),
+//                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(
                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                 ),
                 content = {
-                    items(items = bookmarks?.toList() ?: emptyList(), key = { it }) {
-                        ReorderableItem(
-                            reorderableLazyGridState, key = it
+                    itemsIndexed(items = bookmarks?.toList() ?: emptyList(),
+                        key = { _, item -> item }) { index, item ->
+                        DraggableItem(
+                            dragDropState, index
                         ) { isDragging ->
                             val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
-                            val app = appViewModel.getAppById(it)
+                            val app = appViewModel.getAppById(item)
                             if (app != null) {
                                 Surface(
                                     shadowElevation = elevation, color = Color.Transparent
@@ -213,15 +245,15 @@ fun HomeScreen(
                                             Modifier
                                                 .padding(16.dp, 16.dp, 16.dp, 8.dp)
                                                 .size(64.dp)
-                                                .draggableHandle(onDragStarted = {
-                                                    view.performHapticFeedback(
-                                                        HapticFeedbackConstants.DRAG_START
-                                                    )
-                                                }, onDragStopped = {
-                                                    view.performHapticFeedback(
-                                                        HapticFeedbackConstants.GESTURE_END
-                                                    )
-                                                })
+//                                                .draggableHandle(onDragStarted = {
+//                                                    view.performHapticFeedback(
+//                                                        HapticFeedbackConstants.DRAG_START
+//                                                    )
+//                                                }, onDragStopped = {
+//                                                    view.performHapticFeedback(
+//                                                        HapticFeedbackConstants.GESTURE_END
+//                                                    )
+//                                                })
                                                 .background(
                                                     MaterialTheme.colorScheme.primary,
                                                     RoundedCornerShape(8.dp)
@@ -229,7 +261,7 @@ fun HomeScreen(
 //                                            .border(2.dp, tintColor, RoundedCornerShape(8.dp)),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            AsyncImage(
+                                            GlideImage(
                                                 model = context.resources.getIdentifier(
                                                     app.imageLocalName.lowercase(),
                                                     "drawable",
@@ -237,13 +269,15 @@ fun HomeScreen(
                                                 ),
                                                 contentDescription = "University of Toronto Logo",
                                                 contentScale = ContentScale.Fit,
-                                                modifier = Modifier.height(48.dp)
-                                            )
+                                                modifier = Modifier.height(48.dp),
+                                            ) {
+                                                it.diskCacheStrategy(DiskCacheStrategy.ALL)
+                                            }
                                             if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
                                                     app.id
                                                 )
                                             ) {
-                                                AsyncImage(model = R.drawable.minus,
+                                                GlideImage(model = R.drawable.minus,
                                                     contentDescription = "Remove Button",
                                                     modifier = Modifier.clickable {
                                                         Log.d(
@@ -376,7 +410,7 @@ fun HomeScreen(
                                                                 RoundedCornerShape(8.dp)
                                                             ), contentAlignment = Alignment.Center
                                                     ) {
-                                                        AsyncImage(
+                                                        GlideImage(
                                                             model = context.resources.getIdentifier(
                                                                 jsonResponse?.apps!![item].imageLocalName.lowercase(),
                                                                 "drawable",
@@ -385,15 +419,21 @@ fun HomeScreen(
                                                             contentDescription = "University of Toronto Logo",
                                                             contentScale = ContentScale.Fit,
                                                             modifier = Modifier.height(48.dp)
-                                                        )
+                                                        ) {
+                                                            it.diskCacheStrategy(DiskCacheStrategy.ALL)
+                                                        }
                                                         if (bookmarks?.contains(
                                                                 jsonResponse.apps[item].id
                                                             ) == true
                                                         ) {
-                                                            AsyncImage(
+                                                            GlideImage(
                                                                 model = R.drawable.checkmark,
                                                                 contentDescription = "Selected"
-                                                            )
+                                                            ) {
+                                                                it.diskCacheStrategy(
+                                                                    DiskCacheStrategy.ALL
+                                                                )
+                                                            }
                                                         }
                                                     }
                                                     Text(
@@ -409,13 +449,15 @@ fun HomeScreen(
                                     }
                                 })
                         }
-                        AsyncImage(
+                        GlideImage(
                             model = R.drawable.background,
                             contentDescription = "UofT Logo",
                             modifier = Modifier
                                 .align(Alignment.Center)
                                 .height(256.dp)
-                        )
+                        ) {
+                            it.diskCacheStrategy(DiskCacheStrategy.ALL)
+                        }
                     }
                 }
             }
@@ -501,5 +543,169 @@ fun HomeScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun rememberGridDragDropState(
+    gridState: LazyGridState, onMove: (Int, Int) -> Unit
+): GridDragDropState {
+    val scope = rememberCoroutineScope()
+    val state = remember(gridState) {
+        GridDragDropState(
+            state = gridState, onMove = onMove, scope = scope
+        )
+    }
+    LaunchedEffect(state) {
+        while (true) {
+            val diff = state.scrollChannel.receive()
+            gridState.scrollBy(diff)
+        }
+    }
+    return state
+}
+
+class GridDragDropState internal constructor(
+    private val state: LazyGridState,
+    private val scope: CoroutineScope,
+    private val onMove: (Int, Int) -> Unit
+) {
+    var draggingItemIndex by mutableStateOf<Int?>(null)
+        private set
+
+    internal val scrollChannel = Channel<Float>()
+
+    private var draggingItemDraggedDelta by mutableStateOf(Offset.Zero)
+    private var draggingItemInitialOffset by mutableStateOf(Offset.Zero)
+    internal val draggingItemOffset: Offset
+        get() = draggingItemLayoutInfo?.let { item ->
+            draggingItemInitialOffset + draggingItemDraggedDelta - item.offset.toOffset()
+        } ?: Offset.Zero
+
+    private val draggingItemLayoutInfo: LazyGridItemInfo?
+        get() = state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == draggingItemIndex }
+
+    internal var previousIndexOfDraggedItem by mutableStateOf<Int?>(null)
+        private set
+    internal var previousItemOffset = Animatable(Offset.Zero, Offset.VectorConverter)
+        private set
+
+    internal fun onDragStart(offset: Offset) {
+        state.layoutInfo.visibleItemsInfo.firstOrNull { item ->
+            offset.x.toInt() in item.offset.x..item.offsetEnd.x && offset.y.toInt() in item.offset.y..item.offsetEnd.y
+        }?.also {
+            draggingItemIndex = it.index
+            draggingItemInitialOffset = it.offset.toOffset()
+        }
+    }
+
+    internal fun onDragInterrupted() {
+        if (draggingItemIndex != null) {
+            previousIndexOfDraggedItem = draggingItemIndex
+            val startOffset = draggingItemOffset
+            scope.launch {
+                previousItemOffset.snapTo(startOffset)
+                previousItemOffset.animateTo(
+                    Offset.Zero, spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = Offset.VisibilityThreshold
+                    )
+                )
+                previousIndexOfDraggedItem = null
+            }
+        }
+        draggingItemDraggedDelta = Offset.Zero
+        draggingItemIndex = null
+        draggingItemInitialOffset = Offset.Zero
+    }
+
+    internal fun onDrag(offset: Offset) {
+        draggingItemDraggedDelta += offset
+
+        val draggingItem = draggingItemLayoutInfo ?: return
+        val startOffset = draggingItem.offset.toOffset() + draggingItemOffset
+        val endOffset = startOffset + draggingItem.size.toSize()
+        val middleOffset = startOffset + (endOffset - startOffset) / 2f
+
+        val targetItem = state.layoutInfo.visibleItemsInfo.find { item ->
+            middleOffset.x.toInt() in item.offset.x..item.offsetEnd.x && middleOffset.y.toInt() in item.offset.y..item.offsetEnd.y && draggingItem.index != item.index
+        }
+        if (targetItem != null) {
+            if (draggingItem.index == state.firstVisibleItemIndex || targetItem.index == state.firstVisibleItemIndex) {
+                state.requestScrollToItem(
+                    state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset
+                )
+            }
+            onMove.invoke(draggingItem.index, targetItem.index)
+            draggingItemIndex = targetItem.index
+        } else {
+            val overscroll = when {
+                draggingItemDraggedDelta.y > 0 -> (endOffset.y - state.layoutInfo.viewportEndOffset).coerceAtLeast(
+                    0f
+                )
+
+                draggingItemDraggedDelta.y < 0 -> (startOffset.y - state.layoutInfo.viewportStartOffset).coerceAtMost(
+                    0f
+                )
+
+                else -> 0f
+            }
+            if (overscroll != 0f) {
+                scrollChannel.trySend(overscroll)
+            }
+        }
+    }
+
+    private val LazyGridItemInfo.offsetEnd: IntOffset
+        get() = this.offset + this.size
+}
+
+private operator fun IntOffset.plus(size: IntSize): IntOffset {
+    return IntOffset(x + size.width, y + size.height)
+}
+
+private operator fun Offset.plus(size: Size): Offset {
+    return Offset(x + size.width, y + size.height)
+}
+
+fun Modifier.dragContainer(dragDropState: GridDragDropState): Modifier {
+    return pointerInput(dragDropState) {
+        detectDragGesturesAfterLongPress(onDrag = { change, offset ->
+            change.consume()
+            dragDropState.onDrag(offset = offset)
+        },
+            onDragStart = { offset -> dragDropState.onDragStart(offset) },
+            onDragEnd = { dragDropState.onDragInterrupted() },
+            onDragCancel = { dragDropState.onDragInterrupted() })
+    }
+}
+
+@Composable
+fun LazyGridItemScope.DraggableItem(
+    dragDropState: GridDragDropState,
+    index: Int,
+    modifier: Modifier = Modifier,
+    content: @Composable (isDragging: Boolean) -> Unit
+) {
+    val dragging = index == dragDropState.draggingItemIndex
+    val draggingModifier = if (dragging) {
+        Modifier
+            .zIndex(1f)
+            .graphicsLayer {
+                translationX = dragDropState.draggingItemOffset.x
+                translationY = dragDropState.draggingItemOffset.y
+            }
+    } else if (index == dragDropState.previousIndexOfDraggedItem) {
+        Modifier
+            .zIndex(1f)
+            .graphicsLayer {
+                translationX = dragDropState.previousItemOffset.value.x
+                translationY = dragDropState.previousItemOffset.value.y
+            }
+    } else {
+        Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+    }
+    Box(modifier = modifier.then(draggingModifier), propagateMinConstraints = true) {
+        content(dragging)
     }
 }
