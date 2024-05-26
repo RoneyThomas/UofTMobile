@@ -14,6 +14,7 @@ import ca.utoronto.megaapp.data.entities.App
 import ca.utoronto.megaapp.data.entities.UofTMobile
 import ca.utoronto.megaapp.data.repository.EngRSSRepository
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
+import ca.utoronto.megaapp.ui.BookmarkDTO
 import ca.utoronto.megaapp.ui.SectionsDTO
 import com.prof18.rssparser.model.RssChannel
 import kotlinx.coroutines.delay
@@ -41,10 +42,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
 
-    var bookmarks = MutableLiveData<List<String>>()
+    var bookmarksDTOList = MutableLiveData<List<BookmarkDTO>>()
 
     var searchQuery = MutableLiveData("")
     var refresh = MutableLiveData(false)
+    var updateList: MutableList<BookmarkDTO> = mutableListOf()
 
     private lateinit var rssFeed: LiveData<RssChannel>
 
@@ -69,7 +71,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     // Creates DTO from jsonResponse
     private fun sections(): LiveData<Map<String, SectionsDTO>> =
-        jsonResponse.switchMap { response ->
+        jsonResponse.switchMap {
             run {
                 val sectionsDTOList: MutableMap<String, SectionsDTO> =
                     emptyMap<String, SectionsDTO>().toMutableMap()
@@ -92,18 +94,34 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 // Loads bookmark
-                if (bookmarks.value == null) {
+                if (bookmarksDTOList.value == null) {
                     val sharedPref = sharedPreferences.getString("bookmarks", "")
                     if (!sharedPref.isNullOrEmpty()) {
-                        bookmarks.postValue(sharedPref.split(",").toList())
+                        val bookmarkList = sharedPref.split(",").toList()
+                        updateList =
+                            jsonResponse.value?.apps?.filter { bookmarkList.contains(it.id) }?.map {
+                                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL)
+                            }?.toMutableList() ?: mutableListOf()
+                        bookmarksDTOList.postValue(updateList)
                     } else {
-                        bookmarks.postValue(response.mandatoryApps)
-                        savePreference(response.mandatoryApps)
+                        resetToMandatoryApps()
+                        savePreference()
                     }
                 }
                 return@switchMap MutableLiveData(sectionsDTOList)
             }
         }
+
+    private fun resetToMandatoryApps() {
+        updateList =
+            jsonResponse.value?.apps?.filter {
+                jsonResponse.value?.mandatoryApps?.contains(it.id)
+                    ?: false
+            }?.map {
+                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL)
+            }?.toMutableList() ?: mutableListOf()
+        bookmarksDTOList.postValue(updateList)
+    }
 
     fun filteredSections(): LiveData<Map<String, SectionsDTO>> = searchQuery.switchMap { query ->
         val sectionsDTOList: MutableMap<String, SectionsDTO> =
@@ -134,51 +152,60 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addBookmark(id: String) {
-        if (bookmarks.value?.contains(id) == false) {
-            val updateList = bookmarks.value!!.toMutableList()
-            updateList.add(id)
-            bookmarks.value = updateList
-            savePreference(updateList)
+        if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
+            val updateList = bookmarksDTOList.value!!.toMutableList()
+            val bookmarkDTO = jsonResponse.value?.apps
+                ?.filter { it.id == id }
+                ?.map { BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL) }
+                ?.first()
+            if (bookmarkDTO != null) {
+                updateList.add(bookmarkDTO)
+                bookmarksDTOList.value = updateList
+                savePreference()
+            }
         } else {
             removeBookmark(id)
         }
     }
 
-    private fun savePreference(updateList: List<String>?) {
-        if (updateList != null) {
-            sharedPreferences.edit()
-                .putString("bookmarks", updateList.joinToString(separator = ",")).apply()
-        }
+    private fun savePreference() {
+        sharedPreferences.edit()
+            .putString(
+                "bookmarks",
+                bookmarksDTOList.value?.map { it.id }?.joinToString(separator = ",")
+            )
+            .apply()
     }
 
     fun resetBookmarks() {
         client.cache?.evictAll()
-        bookmarks.value = jsonResponse.value?.mandatoryApps
-        savePreference(jsonResponse.value?.mandatoryApps)
+        resetToMandatoryApps()
+        savePreference()
         showBookmarkInstructions.value = true
         sharedPreferences.edit()
             .putBoolean("showBookmarkInstructions", true).apply()
     }
 
     fun removeBookmark(id: String) {
-        val updateList = bookmarks.value!!.toMutableList()
-        updateList.remove(id)
-        bookmarks.value = updateList
-        savePreference(updateList)
+        val updateList = bookmarksDTOList.value!!.toMutableList()
+        updateList.removeIf { it.id == id }
+        bookmarksDTOList.value = updateList
+        savePreference()
     }
 
     fun swapBookmark(i1: Int, i2: Int) {
         Log.d("AppViewModel", "i1: $i1, i2: $i2")
-        Log.d("AppViewModel", "${bookmarks.value?.toMutableList()}")
-        val updateList = bookmarks.value!!.toMutableList()
+//        Log.d("AppViewModel", "${bookmarksDTOList.value?.toMutableList()}")
         Log.d("AppViewModel", updateList.toString())
-        val x = updateList[i2]
-        updateList.removeAt(i2)
-        updateList.add(i1, x)
-        bookmarks.value = updateList
-        Log.d("AppViewModel", "${bookmarks.value?.toMutableList()}")
-        savePreference(updateList)
+        updateList.add(i2, updateList.removeAt(i1))
+//        Log.d("AppViewModel", "${bookmarksDTOList.value?.toMutableList()}")
     }
+
+    fun saveBookmark() {
+        bookmarksDTOList.value = updateList
+        savePreference()
+    }
+
 
     fun getAppById(id: String): App? {
         return jsonResponse.value?.apps?.single { app: App -> app.id == id }
