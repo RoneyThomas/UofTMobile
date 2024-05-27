@@ -129,6 +129,7 @@ fun HomeScreen(
                     selectedItem = 0
                     addBottomSheet = true
                     showRemoveIcon = false
+                    appViewModel.showRemoveIcon(showRemoveIcon)
                 })
             NavigationBarItem(icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit") },
                 label = {
@@ -185,6 +186,7 @@ fun HomeScreen(
                     itemTouchHelper.attachToRecyclerView(null)
                 }
                 (it.adapter as AppAdapter).submitList(appViewModel.bookmarksDTOList.value)
+                (it.adapter as AppAdapter).notifyDataSetChanged()
             })
 
             if (showBookmarkInstructions.value == true) {

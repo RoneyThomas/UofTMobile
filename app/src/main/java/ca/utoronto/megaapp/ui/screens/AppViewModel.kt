@@ -213,7 +213,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun showRemoveIcon(showRemoveIcon: Boolean) {
         val updateList = bookmarksDTOList.value!!.toMutableList()
-        updateList.forEach { item -> item.showRemoveIcon = showRemoveIcon }
+        updateList.forEach { item ->
+            if (jsonResponse.value?.mandatoryApps?.contains(item.id) == false) {
+                item.showRemoveIcon = showRemoveIcon
+            }
+        }
         bookmarksDTOList.value = updateList
     }
 
