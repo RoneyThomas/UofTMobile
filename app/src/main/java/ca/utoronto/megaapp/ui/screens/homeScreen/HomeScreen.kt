@@ -95,6 +95,15 @@ fun HomeScreen(
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
     val context = LocalContext.current
+    var appAdapter = AppAdapter(
+        onNavigateToRssScreen,
+        appViewModel::removeBookmark,
+        appViewModel
+    ).also {
+        it.submitList(
+            appViewModel.bookmarksDTOList.value
+        )
+    }
 
     val navItemColor = NavigationBarItemDefaults.colors(
         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -145,6 +154,7 @@ fun HomeScreen(
                     selectedItem = 1
                     showRemoveIcon = !showRemoveIcon
                     appViewModel.showRemoveIcon(showRemoveIcon)
+                    appAdapter.notifyDataSetChanged()
                 })
         }
     }) { innerPadding ->
@@ -163,20 +173,12 @@ fun HomeScreen(
                 appViewModel.refresh()
             },
         ) {
+
             AndroidView(factory = {
                 RecyclerView(context).apply {
                     layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                     layoutManager = GridLayoutManager(context, 4)
-                    adapter =
-                        AppAdapter(
-                            onNavigateToRssScreen,
-                            appViewModel::removeBookmark,
-                            appViewModel
-                        ).also {
-                            it.submitList(
-                                appViewModel.bookmarksDTOList.value
-                            )
-                        }
+                    adapter = appAdapter
                     this.setPadding(16, 12, 16, 0)
                 }
             }, update = {
@@ -186,7 +188,7 @@ fun HomeScreen(
                     itemTouchHelper.attachToRecyclerView(null)
                 }
                 (it.adapter as AppAdapter).submitList(appViewModel.bookmarksDTOList.value)
-                (it.adapter as AppAdapter).notifyDataSetChanged()
+                appAdapter = (it.adapter as AppAdapter)
             })
 
             if (showBookmarkInstructions.value == true) {

@@ -225,7 +225,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         Log.d("AppViewModel", "i1: $i1, i2: $i2")
 //        Log.d("AppViewModel", "${bookmarksDTOList.value?.toMutableList()}")
         Log.d("AppViewModel", updateList.toString())
-        updateList.add(i2, updateList.removeAt(i1))
+        if (i1 < bookmarksDTOList.value!!.size && i2 < bookmarksDTOList.value!!.size){
+            updateList.add(i2, updateList.removeAt(i1))
+        }
 //        Log.d("AppViewModel", "${bookmarksDTOList.value?.toMutableList()}")
     }
 
