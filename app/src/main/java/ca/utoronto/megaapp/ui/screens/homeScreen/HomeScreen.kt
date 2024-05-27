@@ -90,6 +90,7 @@ fun HomeScreen(
     var addBottomSheet by remember { mutableStateOf(false) }
     var aboutBottomSheet by remember { mutableStateOf(false) }
     var showRemoveIcon by remember { mutableStateOf(false) }
+    val bookmarksDTOList = appViewModel.bookmarksDTOList.observeAsState().value
     val refresh = appViewModel.refresh.observeAsState().value
     val searchQuery = appViewModel.searchQuery.observeAsState().value
     val searchSections = appViewModel.filteredSections().observeAsState().value
@@ -294,16 +295,12 @@ fun HomeScreen(
                                                             contentScale = ContentScale.Fit,
                                                             modifier = Modifier.height(48.dp)
                                                         )
-//                                                        TODO: Check bookMarkDTOlist if the app is there?
-//                                                        if (bookmarks?.contains(
-//                                                                jsonResponse.apps[item].id
-//                                                            ) == true
-//                                                        ) {
-//                                                            AsyncImage(
-//                                                                model = R.drawable.checkmark,
-//                                                                contentDescription = "Selected"
-//                                                            )
-//                                                        }
+                                                        if (bookmarksDTOList?.any { item1 -> item1.id == jsonResponse.apps[item].id } == true) {
+                                                            AsyncImage(
+                                                                model = R.drawable.checkmark,
+                                                                contentDescription = "Selected"
+                                                            )
+                                                        }
                                                     }
                                                     Text(
                                                         text = jsonResponse?.apps!![item].name,

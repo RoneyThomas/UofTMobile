@@ -211,6 +211,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         return jsonResponse.value?.apps?.single { app: App -> app.id == id }
     }
 
+    fun bookmarksDTOListContains(id: String): Boolean {
+        return bookmarksDTOList.value?.any { item -> item.id == id } == true
+    }
+
     fun hideBookmarkInstructions() {
         showBookmarkInstructions.value = false
         sharedPreferences.edit()
