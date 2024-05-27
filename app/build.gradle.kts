@@ -77,8 +77,6 @@ dependencies {
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.rssparser)
-//    implementation(libs.reorderable)
-//    implementation(libs.glide)
     implementation(libs.androidx.recyclerview)
     implementation(libs.coil)
     implementation(libs.coil.compose)

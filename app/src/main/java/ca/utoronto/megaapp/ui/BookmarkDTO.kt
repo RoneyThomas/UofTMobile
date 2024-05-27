@@ -6,11 +6,13 @@ data class BookmarkDTO(
     val url: String,
     val imageLocalName: String,
     val imageURL: String,
+    var showRemoveIcon: Boolean
 ) {
     override fun equals(other: Any?): Boolean {
         return when (other) {
             is BookmarkDTO -> {
-                this.id == other.id
+                this.id == other.id &&
+                        this.showRemoveIcon == other.showRemoveIcon
             }
 
             else -> false

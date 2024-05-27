@@ -100,7 +100,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         val bookmarkList = sharedPref.split(",").toList()
                         updateList =
                             jsonResponse.value?.apps?.filter { bookmarkList.contains(it.id) }?.map {
-                                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL)
+                                BookmarkDTO(
+                                    it.id,
+                                    it.name,
+                                    it.url,
+                                    it.imageLocalName,
+                                    it.imageURL,
+                                    false
+                                )
                             }?.toMutableList() ?: mutableListOf()
                         bookmarksDTOList.postValue(updateList)
                     } else {
@@ -118,7 +125,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 jsonResponse.value?.mandatoryApps?.contains(it.id)
                     ?: false
             }?.map {
-                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL)
+                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL, false)
             }?.toMutableList() ?: mutableListOf()
         bookmarksDTOList.postValue(updateList)
     }
@@ -157,7 +164,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 val updateList = bookmarksDTOList.value!!.toMutableList()
                 val bookmarkDTO = jsonResponse.value?.apps
                     ?.filter { it.id == id }
-                    ?.map { BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL) }
+                    ?.map {
+                        BookmarkDTO(
+                            it.id,
+                            it.name,
+                            it.url,
+                            it.imageLocalName,
+                            it.imageURL,
+                            false
+                        )
+                    }
                     ?.first()
                 if (bookmarkDTO != null) {
                     updateList.add(bookmarkDTO)
@@ -193,6 +209,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         updateList.removeIf { it.id == id }
         bookmarksDTOList.value = updateList
         savePreference()
+    }
+
+    fun showRemoveIcon(showRemoveIcon: Boolean) {
+        val updateList = bookmarksDTOList.value!!.toMutableList()
+        updateList.forEach { item -> item.showRemoveIcon = showRemoveIcon }
+        bookmarksDTOList.value = updateList
     }
 
     fun swapBookmark(i1: Int, i2: Int) {

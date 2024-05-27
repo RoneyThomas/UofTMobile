@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -77,7 +76,6 @@ import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
 )
 @Composable
 fun HomeScreen(
@@ -145,9 +143,7 @@ fun HomeScreen(
                 onClick = {
                     selectedItem = 1
                     showRemoveIcon = !showRemoveIcon
-                    if (!showRemoveIcon) {
-                        appViewModel.saveBookmark()
-                    }
+                    appViewModel.showRemoveIcon(showRemoveIcon)
                 })
         }
     }) { innerPadding ->
@@ -171,7 +167,11 @@ fun HomeScreen(
                     layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                     layoutManager = GridLayoutManager(context, 4)
                     adapter =
-                        AppAdapter(onNavigateToRssScreen, appViewModel).also {
+                        AppAdapter(
+                            onNavigateToRssScreen,
+                            appViewModel::removeBookmark,
+                            appViewModel
+                        ).also {
                             it.submitList(
                                 appViewModel.bookmarksDTOList.value
                             )

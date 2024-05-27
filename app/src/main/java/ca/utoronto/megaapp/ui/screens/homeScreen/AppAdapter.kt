@@ -26,21 +26,30 @@ import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.BookmarkDTO
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
+import kotlin.reflect.KFunction1
 
-class AppAdapter(onNavigateToRssScreen: () -> Unit, appViewModel: AppViewModel) :
+class AppAdapter(
+    onNavigateToRssScreen: () -> Unit, removeApp: KFunction1<String, Unit>,
+    private val appViewModel: AppViewModel
+) :
     ListAdapter<BookmarkDTO, AppAdapter.AppViewHolder>(AppDiffCallback) {
     private val navigate = onNavigateToRssScreen
-    private val appViewModel = appViewModel
+    private val removeApp = removeApp
 
     /* ViewHolder for Flower, takes in the inflated view and the onClick behavior. */
     class AppViewHolder(private val composeView: ComposeView) :
         RecyclerView.ViewHolder(composeView) {
         private var currentApp: BookmarkDTO? = null
 
-        fun bind(app: BookmarkDTO, onNavigateToRssScreen: () -> Unit) {
+        fun bind(
+            app: BookmarkDTO,
+            onNavigateToRssScreen: () -> Unit,
+            removeApp: KFunction1<String, Unit>
+        ) {
             currentApp = app
             composeView.setContent {
                 Column(
@@ -75,6 +84,23 @@ class AppAdapter(onNavigateToRssScreen: () -> Unit, appViewModel: AppViewModel) 
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.height(48.dp),
                         )
+                        if (app.showRemoveIcon) {
+                            AsyncImage(model = R.drawable.minus,
+                                contentDescription = "Remove Button",
+                                modifier = Modifier.clickable {
+                                    Log.d(
+                                        "Remove Button",
+                                        "CenterAlignedTopAppBarExample: " + app.id
+                                    )
+                                    removeApp(app.id)
+//                                    if ((appViewModel.bookmarks.value?.size
+//                                            ?: 0) <= 0
+//                                    ) {
+//                                        showRemoveIcon = false
+//                                    }
+//                                    appViewModel.removeBookmark(app.id)
+                                })
+                        }
 //                        if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
 //                                app.id
 //                            )
@@ -123,7 +149,7 @@ class AppAdapter(onNavigateToRssScreen: () -> Unit, appViewModel: AppViewModel) 
     /* Gets current flower and uses it to bind view. */
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val app = getItem(position)
-        holder.bind(app, navigate)
+        holder.bind(app, navigate, removeApp)
     }
 
     fun moveItem(from: Int, to: Int) {
@@ -134,10 +160,10 @@ class AppAdapter(onNavigateToRssScreen: () -> Unit, appViewModel: AppViewModel) 
 
 object AppDiffCallback : DiffUtil.ItemCallback<BookmarkDTO>() {
     override fun areItemsTheSame(oldItem: BookmarkDTO, newItem: BookmarkDTO): Boolean {
-        return oldItem.id == newItem.id
+        return oldItem == newItem
     }
 
     override fun areContentsTheSame(oldItem: BookmarkDTO, newItem: BookmarkDTO): Boolean {
-        return oldItem.id == newItem.id
+        return oldItem == newItem
     }
 }
