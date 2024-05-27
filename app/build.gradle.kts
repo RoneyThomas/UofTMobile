@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "ca.utoronto.megaapp"
-        minSdk = 34
+        minSdk = 27
         targetSdk = 34
         versionCode = 4
         versionName = "4.0.0"
