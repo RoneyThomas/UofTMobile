@@ -152,19 +152,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addBookmark(id: String) {
-        if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
-            val updateList = bookmarksDTOList.value!!.toMutableList()
-            val bookmarkDTO = jsonResponse.value?.apps
-                ?.filter { it.id == id }
-                ?.map { BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL) }
-                ?.first()
-            if (bookmarkDTO != null) {
-                updateList.add(bookmarkDTO)
-                bookmarksDTOList.value = updateList
-                savePreference()
+        if (jsonResponse.value?.mandatoryApps?.contains(id) != true) {
+            if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
+                val updateList = bookmarksDTOList.value!!.toMutableList()
+                val bookmarkDTO = jsonResponse.value?.apps
+                    ?.filter { it.id == id }
+                    ?.map { BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL) }
+                    ?.first()
+                if (bookmarkDTO != null) {
+                    updateList.add(bookmarkDTO)
+                    bookmarksDTOList.value = updateList
+                    savePreference()
+                }
+            } else {
+                removeBookmark(id)
             }
-        } else {
-            removeBookmark(id)
         }
     }
 
