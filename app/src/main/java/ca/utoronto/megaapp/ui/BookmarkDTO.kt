@@ -25,6 +25,7 @@ data class BookmarkDTO(
         result = 31 * result + url.hashCode()
         result = 31 * result + imageLocalName.hashCode()
         result = 31 * result + imageURL.hashCode()
+        result = 31 * result + showRemoveIcon.hashCode()
         return result
     }
 }
