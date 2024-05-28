@@ -36,6 +36,7 @@ fun UofTMobileNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     startDestination: String = "home",
+//    startDestination: String = "settings",
     application: Application
 ) {
     val appViewModel = AppViewModel(application)

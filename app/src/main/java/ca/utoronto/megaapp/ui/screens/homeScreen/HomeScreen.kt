@@ -2,6 +2,7 @@ package ca.utoronto.megaapp.ui.screens.homeScreen
 
 import android.util.Log
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,11 +26,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
@@ -45,7 +52,6 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,12 +59,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -85,6 +89,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     var addBottomSheet by remember { mutableStateOf(false) }
     var aboutBottomSheet by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
     var showRemoveIcon = appViewModel.showRemoveIcon.observeAsState().value
     val bookmarksDTOList = appViewModel.getBookMarks().observeAsState().value
     val refresh = appViewModel.refresh.observeAsState().value
@@ -101,26 +106,74 @@ fun HomeScreen(
         unselectedIconColor = Color.White,
         unselectedTextColor = Color.White,
     )
-    Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
-        CenterAlignedTopAppBar(
-            colors = topAppBarColors(
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                colors = topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.surface,
+                ),
+                title = {
+                    AsyncImage(
+                        model = R.drawable.uoftcrst_stacked_white_use_only_on_655,
+                        contentDescription = "University of Toronto Logo",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.height(48.dp)
+                    )
+                },
+                actions = {
+                    Box(
+                        modifier = Modifier
+                            .wrapContentSize(Alignment.TopEnd)
+                    ) {
+                        IconButton(onClick = { expanded = !expanded }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                tint = MaterialTheme.colorScheme.surface,
+                                contentDescription = "More"
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Edit") },
+                                onClick = { Toast.makeText(context, "Load", Toast.LENGTH_SHORT).show() }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Setting") },
+                                onClick = { Toast.makeText(context, "Save", Toast.LENGTH_SHORT).show() }
+                            )
+                        }
+                    }
+                    // RowScope here, so these icons will be placed horizontally
+//                    IconButton(onClick = { /* doSomething() */ }) {
+//                        Icon(
+//                            imageVector = Icons.Default.MoreVert,
+//                            tint = MaterialTheme.colorScheme.surface,
+//                            contentDescription = "Localized description"
+//                        )
+//                    }
+                },
+            )
+        },
+        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick =
+                {
+                    addBottomSheet = true
+                    showRemoveIcon = false
+                    appViewModel.setEditMode(false)
+                },
                 containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.surface,
-            ),
-            title = {
-                AsyncImage(
-                    model = R.drawable.uoftcrst_stacked_white_use_only_on_655,
-                    contentDescription = "University of Toronto Logo",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.height(48.dp)
-                )
-            },
-        )
-    }, floatingActionButtonPosition = FabPosition.End, floatingActionButton = {
-        FloatingActionButton(onClick = {}) {
-            Text("+")
-        }
-    },
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = "Add")
+            }
+        },
 //        bottomBar = {
 //        var selectedItem by remember { mutableIntStateOf(-1) }
 //        NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
@@ -337,6 +390,38 @@ fun HomeScreen(
 //                    appViewModel = appViewModel
 //                ).SettingsPageMain()
             }
+        }
+    }
+}
+
+@Composable
+fun DropDownMenu() {
+    val context = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier.fillMaxWidth()
+            .wrapContentSize(Alignment.TopEnd)
+    ) {
+        IconButton(onClick = { expanded = !expanded }) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "More"
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Load") },
+                onClick = { Toast.makeText(context, "Load", Toast.LENGTH_SHORT).show() }
+            )
+            DropdownMenuItem(
+                text = { Text("Save") },
+                onClick = { Toast.makeText(context, "Save", Toast.LENGTH_SHORT).show() }
+            )
         }
     }
 }
