@@ -6,7 +6,9 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +42,8 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -235,14 +240,26 @@ fun HomeScreen(
                                 }) {
                                     Text("Done")
                                 }
-                                OutlinedTextField(
+                                TextField(
                                     value = searchQuery ?: "", onValueChange = {
                                         appViewModel.searchQuery.value = it
                                     }, modifier = Modifier
-                                        .padding(
-                                            8.dp, 0.dp
+                                        .padding(8.dp, 0.dp)
+                                        .fillMaxWidth()
+                                        .border(
+                                            BorderStroke(
+                                                width = 2.dp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            ),
+                                            shape = RoundedCornerShape(50)
                                         )
-                                        .weight(1f)
+                                        .weight(0.1f),
+                                    placeholder = { Text("Search") },
+                                    colors = TextFieldDefaults.colors(
+                                        focusedIndicatorColor = Color.Transparent,
+                                        unfocusedIndicatorColor = Color.Transparent,
+                                        unfocusedContainerColor = Color.Transparent,
+                                        focusedContainerColor = Color.Transparent)
                                 )
                                 Button(onClick = {
                                     scope.launch { addSheetState.hide() }.invokeOnCompletion {
@@ -328,11 +345,12 @@ fun HomeScreen(
                 }
             }
             if (aboutBottomSheet) {
-                AboutPage(changeBottomSheet = { aboutBottomSheet = it},
-                    aboutSheetState = aboutSheetState,
-                    scope = scope,
-                    context = context,
-                    appViewModel = appViewModel).AboutPageMain()
+                Log.d("Main Activity", "Deleted")
+//                AboutPage(changeBottomSheet = { aboutBottomSheet = it},
+//                    aboutSheetState = aboutSheetState,
+//                    scope = scope,
+//                    context = context,
+//                    appViewModel = appViewModel).AboutPageMain()
             }
         }
     }
