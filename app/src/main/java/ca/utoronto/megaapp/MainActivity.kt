@@ -51,6 +51,7 @@ fun UofTMobileNavHost(
         composable("rssScreen") {
             UofTMobileTheme { RssScreen(appViewModel, navController) }
         }
+
     }
 }
 

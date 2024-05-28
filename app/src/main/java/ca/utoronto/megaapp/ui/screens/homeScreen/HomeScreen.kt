@@ -1,11 +1,8 @@
 package ca.utoronto.megaapp.ui.screens.homeScreen
 
-import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,8 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -39,6 +36,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -63,7 +61,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -105,7 +102,7 @@ fun HomeScreen(
         unselectedTextColor = Color.White,
     )
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
-        CenterAlignedTopAppBar(
+        TopAppBar(
             colors = topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.surface,
@@ -119,46 +116,52 @@ fun HomeScreen(
                 )
             },
         )
-    }, bottomBar = {
-        var selectedItem by remember { mutableIntStateOf(-1) }
-        NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
-            NavigationBarItem(icon = { Icon(Icons.Filled.Add, contentDescription = "Add") },
-                label = { Text("Add") },
-                selected = false,
-                colors = navItemColor,
-                onClick = {
-                    selectedItem = 0
-                    addBottomSheet = true
-                    showRemoveIcon = false
-                    appViewModel.setEditMode(false)
-//                    appViewModel.showRemoveIcon(showRemoveIcon)
-                })
-            NavigationBarItem(icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit") },
-                label = {
-                    if (showRemoveIcon == true) {
-                        Text("Done")
-                    } else {
-                        Text("Edit")
-                    }
-                },
-                selected = false,
-                colors = navItemColor,
-                onClick = {
-                    selectedItem = 1
-                    appViewModel.setEditMode(!showRemoveIcon!!)
-                })
+    }, floatingActionButtonPosition = FabPosition.End, floatingActionButton = {
+        FloatingActionButton(onClick = {}) {
+            Text("+")
         }
-    }) { innerPadding ->
+    },
+//        bottomBar = {
+//        var selectedItem by remember { mutableIntStateOf(-1) }
+//        NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
+//            NavigationBarItem(icon = { Icon(Icons.Filled.Add, contentDescription = "Add") },
+//                label = { Text("Add") },
+//                selected = false,
+//                colors = navItemColor,
+//                onClick = {
+//                    selectedItem = 0
+//                    addBottomSheet = true
+//                    showRemoveIcon = false
+//                    appViewModel.setEditMode(false)
+////                    appViewModel.showRemoveIcon(showRemoveIcon)
+//                })
+//            NavigationBarItem(icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit") },
+//                label = {
+//                    if (showRemoveIcon == true) {
+//                        Text("Done")
+//                    } else {
+//                        Text("Edit")
+//                    }
+//                },
+//                selected = false,
+//                colors = navItemColor,
+//                onClick = {
+//                    selectedItem = 1
+//                    appViewModel.setEditMode(!showRemoveIcon!!)
+//                })
+//        }
+//    }
+    ) { innerPadding ->
         PullToRefreshBox(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
-                .background(
-                    color = Color(0xFFD0D1C9)
-                )
-                .paint(
-                    painterResource(id = R.drawable.background), contentScale = ContentScale.Fit
-                ),
+                .fillMaxSize(),
+//                .background(
+//                    color = Color(0xFFD0D1C9)
+//                )
+//                .paint(
+//                    painterResource(id = R.drawable.background), contentScale = ContentScale.Fit
+//                ),
             isRefreshing = refresh ?: false,
             onRefresh = {
                 appViewModel.refresh()
@@ -170,9 +173,7 @@ fun HomeScreen(
                     layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                     layoutManager = GridLayoutManager(context, 4)
                     adapter = AppAdapter(
-                        onNavigateToRssScreen,
-                        appViewModel::removeBookmark,
-                        appViewModel
+                        onNavigateToRssScreen, appViewModel::removeBookmark, appViewModel
                     ).also {
                         it.submitList(
                             bookmarksDTOList
@@ -328,11 +329,13 @@ fun HomeScreen(
                 }
             }
             if (aboutBottomSheet) {
-                AboutPage(changeBottomSheet = { aboutBottomSheet = it},
+                AboutPage(
+                    changeBottomSheet = { aboutBottomSheet = it },
                     aboutSheetState = aboutSheetState,
                     scope = scope,
                     context = context,
-                    appViewModel = appViewModel).AboutPageMain()
+                    appViewModel = appViewModel
+                ).AboutPageMain()
             }
         }
     }

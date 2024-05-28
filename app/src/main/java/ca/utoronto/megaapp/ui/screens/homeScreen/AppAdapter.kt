@@ -124,14 +124,14 @@ class AppAdapter(
                     Text(
                         text = app.name,
                         textAlign = TextAlign.Center,
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            shadow = Shadow(
-                                color = Color.Black,
-                                offset = Offset(2f, 2f),
-                                blurRadius = 8f
-                            )
-                        )
+//                        color = Color.White,
+//                        style = MaterialTheme.typography.bodyLarge.copy(
+//                            shadow = Shadow(
+//                                color = Color.Black,
+//                                offset = Offset(2f, 2f),
+//                                blurRadius = 8f
+//                            )
+//                        )
                     )
                 }
             }
