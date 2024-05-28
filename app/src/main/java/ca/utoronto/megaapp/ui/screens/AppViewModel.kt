@@ -15,6 +15,8 @@ import ca.utoronto.megaapp.data.repository.EngRSSRepository
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
 import ca.utoronto.megaapp.ui.BookmarkDTO
 import ca.utoronto.megaapp.ui.SectionsDTO
+import coil.annotation.ExperimentalCoilApi
+import coil.imageLoader
 import com.prof18.rssparser.model.RssChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -22,7 +24,7 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File
 
-class AppViewModel(application: Application) : AndroidViewModel(application) {
+class AppViewModel(private val application: Application) : AndroidViewModel(application) {
 
     // Creates OkHttpClient with http caching
     private val client: OkHttpClient = OkHttpClient.Builder().cache(
@@ -210,8 +212,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             .apply()
     }
 
+    @OptIn(ExperimentalCoilApi::class)
     fun resetBookmarks() {
         client.cache?.evictAll()
+        application.imageLoader.diskCache?.clear()
+        application.imageLoader.memoryCache?.clear()
         resetToMandatoryApps()
         savePreference()
         showBookmarkInstructions.value = true
