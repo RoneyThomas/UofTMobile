@@ -58,12 +58,3 @@ fun UofTMobileNavHost(
         }
     }
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    UofTMobileTheme {
-//        HomeScreen(AppViewModel(LocalContext.current.applicationContext))
-//    }
-//}
