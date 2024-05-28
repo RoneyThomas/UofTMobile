@@ -1,11 +1,8 @@
 package ca.utoronto.megaapp.ui.screens.homeScreen
 
-import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -63,14 +59,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.utoronto.megaapp.R
-import ca.utoronto.megaapp.ui.composables.AboutPage
+import ca.utoronto.megaapp.ui.composables.SettingsPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -328,11 +323,13 @@ fun HomeScreen(
                 }
             }
             if (aboutBottomSheet) {
-                AboutPage(changeBottomSheet = { aboutBottomSheet = it},
-                    aboutSheetState = aboutSheetState,
-                    scope = scope,
-                    context = context,
-                    appViewModel = appViewModel).AboutPageMain()
+                Log.d("Deleted", "Deleted")
+
+//                SettingsPage(
+//                    scope = scope,
+//                    context = context,
+//                    appViewModel = appViewModel
+//                ).SettingsPageMain()
             }
         }
     }

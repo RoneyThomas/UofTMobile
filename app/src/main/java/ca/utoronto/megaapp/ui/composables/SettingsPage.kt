@@ -3,50 +3,68 @@ package ca.utoronto.megaapp.ui.composables
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.SheetState
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
-class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
-    (var changeBottomSheet: (Boolean) -> Unit, var aboutSheetState: SheetState,
-     var scope: CoroutineScope, var context: Context, var appViewModel: AppViewModel){
+class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
+    (private var appViewModel: AppViewModel, private var navController: NavHostController){
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun AboutPageMain() {
-        ModalBottomSheet(
-            onDismissRequest = {
-                changeBottomSheet(false)
-            }, sheetState = aboutSheetState
-        ) {
-            // Sheet content
-            Column(modifier = Modifier.padding(12.dp, 8.dp)) {
-                AboutPageButton(onClickEffect = {
-                    scope.launch { aboutSheetState.hide() }.invokeOnCompletion {
-                        if (!aboutSheetState.isVisible) {
-                            changeBottomSheet(false)
-                        }
-                    }
-                }, text = "Done", alignment = Alignment.Start)
-
+    fun SettingsPageMain() {
+        val context = LocalContext.current
+//        val rssFeed = appViewModel.getRssFeed().observeAsState().value
+        Log.d("MainActivity", "SettingsPage: ")
+        Scaffold(topBar = {
+            TopAppBar(colors = topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = MaterialTheme.colorScheme.surface,
+            ), title = {
+                Text("Settings")
+            }, navigationIcon = {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        tint = MaterialTheme.colorScheme.surface,
+                        contentDescription = "Back"
+                    )
+                }
+            })
+        }) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
                 AboutPageSection(mainText = "Feedback",
                     subText = "Have any comments or suggestions on the content or layout of U of T Mobile? " +
                             "We'd love to hear it!")
@@ -85,13 +103,14 @@ class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
                                 .build()
                             intent.launchUrl(context, Uri.parse(url))
                         })
+
             }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun AboutPageButton(onClickEffect: () -> Unit, text: String,
+    private fun AboutPageButton(onClickEffect: () -> Unit, text: String,
                         alignment: Alignment.Horizontal = Alignment.CenterHorizontally){
         Column(modifier = Modifier.fillMaxWidth()){
             OutlinedButton(onClick = onClickEffect,
@@ -102,7 +121,7 @@ class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
     }
 
     @Composable
-    fun AboutPageSection(mainText: String, subText: String){
+    private fun AboutPageSection(mainText: String, subText: String){
         Text(
             text = mainText,
             fontWeight = FontWeight.Bold,

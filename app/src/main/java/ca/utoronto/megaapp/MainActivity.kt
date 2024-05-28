@@ -11,6 +11,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import ca.utoronto.megaapp.ui.composables.SettingsPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.screens.homeScreen.HomeScreen
 import ca.utoronto.megaapp.ui.screens.rssFeed.RssScreen
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
 fun UofTMobileNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = "home",
+    startDestination: String = "settings",
     application: Application
 ) {
     val appViewModel = AppViewModel(application)
@@ -50,6 +51,9 @@ fun UofTMobileNavHost(
         }
         composable("rssScreen") {
             UofTMobileTheme { RssScreen(appViewModel, navController) }
+        }
+        composable("settings") {
+            UofTMobileTheme { SettingsPage(appViewModel, navController).SettingsPageMain() }
         }
     }
 }
