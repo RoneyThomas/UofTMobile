@@ -87,23 +87,14 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     var addBottomSheet by remember { mutableStateOf(false) }
     var aboutBottomSheet by remember { mutableStateOf(false) }
-    var showRemoveIcon by remember { mutableStateOf(false) }
-    val bookmarksDTOList = appViewModel.bookmarksDTOList.observeAsState().value
+    var showRemoveIcon = appViewModel.showRemoveIcon.observeAsState().value
+    val bookmarksDTOList = appViewModel.getBookMarks().observeAsState().value
     val refresh = appViewModel.refresh.observeAsState().value
     val searchQuery = appViewModel.searchQuery.observeAsState().value
     val searchSections = appViewModel.filteredSections().observeAsState().value
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState()
     val jsonResponse = appViewModel.jsonResponse.value
     val context = LocalContext.current
-    var appAdapter = AppAdapter(
-        onNavigateToRssScreen,
-        appViewModel::removeBookmark,
-        appViewModel
-    ).also {
-        it.submitList(
-            appViewModel.bookmarksDTOList.value
-        )
-    }
 
     val navItemColor = NavigationBarItemDefaults.colors(
         selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -138,11 +129,12 @@ fun HomeScreen(
                     selectedItem = 0
                     addBottomSheet = true
                     showRemoveIcon = false
-                    appViewModel.showRemoveIcon(showRemoveIcon)
+                    appViewModel.setEditMode(false)
+//                    appViewModel.showRemoveIcon(showRemoveIcon)
                 })
             NavigationBarItem(icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit") },
                 label = {
-                    if (showRemoveIcon) {
+                    if (showRemoveIcon == true) {
                         Text("Done")
                     } else {
                         Text("Edit")
@@ -152,9 +144,7 @@ fun HomeScreen(
                 colors = navItemColor,
                 onClick = {
                     selectedItem = 1
-                    showRemoveIcon = !showRemoveIcon
-                    appViewModel.showRemoveIcon(showRemoveIcon)
-                    appAdapter.notifyDataSetChanged()
+                    appViewModel.setEditMode(!showRemoveIcon!!)
                 })
         }
     }) { innerPadding ->
@@ -178,17 +168,24 @@ fun HomeScreen(
                 RecyclerView(context).apply {
                     layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                     layoutManager = GridLayoutManager(context, 4)
-                    adapter = appAdapter
+                    adapter = AppAdapter(
+                        onNavigateToRssScreen,
+                        appViewModel::removeBookmark,
+                        appViewModel
+                    ).also {
+                        it.submitList(
+                            bookmarksDTOList
+                        )
+                    }
                     this.setPadding(16, 12, 16, 0)
                 }
             }, update = {
-                if (showRemoveIcon) {
+                if (showRemoveIcon == true) {
                     itemTouchHelper.attachToRecyclerView(it)
                 } else {
                     itemTouchHelper.attachToRecyclerView(null)
                 }
-                (it.adapter as AppAdapter).submitList(appViewModel.bookmarksDTOList.value)
-                appAdapter = (it.adapter as AppAdapter)
+                (it.adapter as AppAdapter).submitList(bookmarksDTOList)
             })
 
             if (showBookmarkInstructions.value == true) {
