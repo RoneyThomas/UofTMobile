@@ -25,7 +25,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -37,8 +37,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -71,7 +69,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.utoronto.megaapp.R
-import ca.utoronto.megaapp.ui.composables.SettingsPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -123,6 +120,17 @@ fun HomeScreen(
                     )
                 },
                 actions = {
+                    if (showRemoveIcon == true) {
+                        IconButton(onClick = {
+                            appViewModel.setEditMode(false)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Done,
+                                tint = MaterialTheme.colorScheme.surface,
+                                contentDescription = "More"
+                            )
+                        }
+                    }
                     Box(
                         modifier = Modifier
                             .wrapContentSize(Alignment.TopEnd)
@@ -141,11 +149,18 @@ fun HomeScreen(
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Edit") },
-                                onClick = { Toast.makeText(context, "Load", Toast.LENGTH_SHORT).show() }
+                                onClick = {
+                                    appViewModel.setEditMode(!showRemoveIcon!!)
+                                    Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show()
+                                    expanded = false
+                                }
                             )
                             DropdownMenuItem(
                                 text = { Text("Setting") },
-                                onClick = { Toast.makeText(context, "Save", Toast.LENGTH_SHORT).show() }
+                                onClick = {
+                                    Toast.makeText(context, "Setting", Toast.LENGTH_SHORT).show()
+                                    expanded = false
+                                }
                             )
                         }
                     }
@@ -246,7 +261,7 @@ fun HomeScreen(
             if (showBookmarkInstructions.value == true) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
+                        .align(Alignment.TopStart)
                         .padding(8.dp)
                         .clip(shape = RoundedCornerShape(8.dp))
                         .background(Color(0XCC1E3765))
@@ -262,7 +277,6 @@ fun HomeScreen(
                                 Text(text = "Dismiss")
                             }
                         }
-
                     }
                 }
             }
@@ -400,7 +414,8 @@ fun DropDownMenu() {
     var expanded by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .wrapContentSize(Alignment.TopEnd)
     ) {
         IconButton(onClick = { expanded = !expanded }) {
