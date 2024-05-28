@@ -10,12 +10,13 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
-import ca.utoronto.megaapp.data.entities.App
 import ca.utoronto.megaapp.data.entities.UofTMobile
 import ca.utoronto.megaapp.data.repository.EngRSSRepository
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
 import ca.utoronto.megaapp.ui.BookmarkDTO
 import ca.utoronto.megaapp.ui.SectionsDTO
+import coil.annotation.ExperimentalCoilApi
+import coil.imageLoader
 import com.prof18.rssparser.model.RssChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -23,7 +24,7 @@ import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File
 
-class AppViewModel(application: Application) : AndroidViewModel(application) {
+class AppViewModel(private val application: Application) : AndroidViewModel(application) {
 
     // Creates OkHttpClient with http caching
     private val client: OkHttpClient = OkHttpClient.Builder().cache(
@@ -42,11 +43,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
 
-    var bookmarksDTOList = MutableLiveData<List<BookmarkDTO>>()
+    private var bookmarksDTOList = MutableLiveData<List<BookmarkDTO>>()
+    var showRemoveIcon = MutableLiveData(false)
 
     var searchQuery = MutableLiveData("")
     var refresh = MutableLiveData(false)
-    var updateList: MutableList<BookmarkDTO> = mutableListOf()
+    private var updateList: MutableList<BookmarkDTO> = mutableListOf()
 
     private lateinit var rssFeed: LiveData<RssChannel>
 
@@ -67,6 +69,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             delay(400)
             refresh.value = false
         }
+    }
+
+    fun setEditMode(isEditMode: Boolean) {
+        showRemoveIcon.value = isEditMode
+        bookmarksDTOList.value = bookmarksDTOList.value!!.map { item ->
+            if (jsonResponse.value?.mandatoryApps?.contains(item.id) == false) {
+                item.copy(showRemoveIcon = isEditMode)
+            } else {
+                item
+            }
+        }.toList()
+    }
+
+    fun getBookMarks(): LiveData<List<BookmarkDTO>> {
+        return bookmarksDTOList
     }
 
     // Creates DTO from jsonResponse
@@ -100,7 +117,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         val bookmarkList = sharedPref.split(",").toList()
                         updateList =
                             jsonResponse.value?.apps?.filter { bookmarkList.contains(it.id) }?.map {
-                                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL)
+                                BookmarkDTO(
+                                    it.id,
+                                    it.name,
+                                    it.url,
+                                    it.imageLocalName,
+                                    it.imageURL,
+                                    false
+                                )
                             }?.toMutableList() ?: mutableListOf()
                         bookmarksDTOList.postValue(updateList)
                     } else {
@@ -118,7 +142,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 jsonResponse.value?.mandatoryApps?.contains(it.id)
                     ?: false
             }?.map {
-                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL)
+                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL, false)
             }?.toMutableList() ?: mutableListOf()
         bookmarksDTOList.postValue(updateList)
     }
@@ -152,19 +176,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addBookmark(id: String) {
-        if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
-            val updateList = bookmarksDTOList.value!!.toMutableList()
-            val bookmarkDTO = jsonResponse.value?.apps
-                ?.filter { it.id == id }
-                ?.map { BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL) }
-                ?.first()
-            if (bookmarkDTO != null) {
-                updateList.add(bookmarkDTO)
-                bookmarksDTOList.value = updateList
-                savePreference()
+        if (jsonResponse.value?.mandatoryApps?.contains(id) != true) {
+            if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
+                updateList = bookmarksDTOList.value!!.toMutableList()
+                val bookmarkDTO = jsonResponse.value?.apps
+                    ?.filter { it.id == id }
+                    ?.map {
+                        BookmarkDTO(
+                            it.id,
+                            it.name,
+                            it.url,
+                            it.imageLocalName,
+                            it.imageURL,
+                            false
+                        )
+                    }
+                    ?.first()
+                if (bookmarkDTO != null) {
+                    updateList.add(bookmarkDTO)
+                    bookmarksDTOList.value = updateList.toList()
+                    savePreference()
+                }
+            } else {
+                removeBookmark(id)
             }
-        } else {
-            removeBookmark(id)
         }
     }
 
@@ -177,8 +212,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             .apply()
     }
 
+    @OptIn(ExperimentalCoilApi::class)
     fun resetBookmarks() {
         client.cache?.evictAll()
+        application.imageLoader.diskCache?.clear()
+        application.imageLoader.memoryCache?.clear()
         resetToMandatoryApps()
         savePreference()
         showBookmarkInstructions.value = true
@@ -187,28 +225,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun removeBookmark(id: String) {
-        val updateList = bookmarksDTOList.value!!.toMutableList()
+        updateList = bookmarksDTOList.value!!.toMutableList()
         updateList.removeIf { it.id == id }
-        bookmarksDTOList.value = updateList
+        bookmarksDTOList.value = updateList.toList()
         savePreference()
     }
 
     fun swapBookmark(i1: Int, i2: Int) {
         Log.d("AppViewModel", "i1: $i1, i2: $i2")
-//        Log.d("AppViewModel", "${bookmarksDTOList.value?.toMutableList()}")
         Log.d("AppViewModel", updateList.toString())
-        updateList.add(i2, updateList.removeAt(i1))
-//        Log.d("AppViewModel", "${bookmarksDTOList.value?.toMutableList()}")
-    }
-
-    fun saveBookmark() {
-        bookmarksDTOList.value = updateList
-        savePreference()
-    }
-
-
-    fun getAppById(id: String): App? {
-        return jsonResponse.value?.apps?.single { app: App -> app.id == id }
+        if (i1 < updateList.size && i2 < updateList.size) {
+            updateList.add(i2, updateList.removeAt(i1))
+        }
     }
 
     fun hideBookmarkInstructions() {

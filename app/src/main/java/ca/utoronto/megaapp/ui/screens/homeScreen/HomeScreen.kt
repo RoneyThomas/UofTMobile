@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -78,7 +77,6 @@ import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
 )
 @Composable
 fun HomeScreen(
@@ -90,7 +88,8 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     var addBottomSheet by remember { mutableStateOf(false) }
     var aboutBottomSheet by remember { mutableStateOf(false) }
-    var showRemoveIcon by remember { mutableStateOf(false) }
+    var showRemoveIcon = appViewModel.showRemoveIcon.observeAsState().value
+    val bookmarksDTOList = appViewModel.getBookMarks().observeAsState().value
     val refresh = appViewModel.refresh.observeAsState().value
     val searchQuery = appViewModel.searchQuery.observeAsState().value
     val searchSections = appViewModel.filteredSections().observeAsState().value
@@ -131,10 +130,12 @@ fun HomeScreen(
                     selectedItem = 0
                     addBottomSheet = true
                     showRemoveIcon = false
+                    appViewModel.setEditMode(false)
+//                    appViewModel.showRemoveIcon(showRemoveIcon)
                 })
             NavigationBarItem(icon = { Icon(Icons.Filled.Edit, contentDescription = "Edit") },
                 label = {
-                    if (showRemoveIcon) {
+                    if (showRemoveIcon == true) {
                         Text("Done")
                     } else {
                         Text("Edit")
@@ -144,10 +145,7 @@ fun HomeScreen(
                 colors = navItemColor,
                 onClick = {
                     selectedItem = 1
-                    showRemoveIcon = !showRemoveIcon
-                    if (!showRemoveIcon) {
-                        appViewModel.saveBookmark()
-                    }
+                    appViewModel.setEditMode(!showRemoveIcon!!)
                 })
         }
     }) { innerPadding ->
@@ -166,25 +164,29 @@ fun HomeScreen(
                 appViewModel.refresh()
             },
         ) {
+
             AndroidView(factory = {
                 RecyclerView(context).apply {
                     layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
                     layoutManager = GridLayoutManager(context, 4)
-                    adapter =
-                        AppAdapter(onNavigateToRssScreen, appViewModel).also {
-                            it.submitList(
-                                appViewModel.bookmarksDTOList.value
-                            )
-                        }
+                    adapter = AppAdapter(
+                        onNavigateToRssScreen,
+                        appViewModel::removeBookmark,
+                        appViewModel
+                    ).also {
+                        it.submitList(
+                            bookmarksDTOList
+                        )
+                    }
                     this.setPadding(16, 12, 16, 0)
                 }
             }, update = {
-                if (showRemoveIcon) {
+                if (showRemoveIcon == true) {
                     itemTouchHelper.attachToRecyclerView(it)
                 } else {
                     itemTouchHelper.attachToRecyclerView(null)
                 }
-                (it.adapter as AppAdapter).submitList(appViewModel.bookmarksDTOList.value)
+                (it.adapter as AppAdapter).submitList(bookmarksDTOList)
             })
 
             if (showBookmarkInstructions.value == true) {
@@ -295,16 +297,12 @@ fun HomeScreen(
                                                             contentScale = ContentScale.Fit,
                                                             modifier = Modifier.height(48.dp)
                                                         )
-//                                                        TODO: Check bookMarkDTOlist if the app is there?
-//                                                        if (bookmarks?.contains(
-//                                                                jsonResponse.apps[item].id
-//                                                            ) == true
-//                                                        ) {
-//                                                            AsyncImage(
-//                                                                model = R.drawable.checkmark,
-//                                                                contentDescription = "Selected"
-//                                                            )
-//                                                        }
+                                                        if (bookmarksDTOList?.any { item1 -> item1.id == jsonResponse.apps[item].id } == true) {
+                                                            AsyncImage(
+                                                                model = R.drawable.checkmark,
+                                                                contentDescription = "Selected"
+                                                            )
+                                                        }
                                                     }
                                                     Text(
                                                         text = jsonResponse?.apps!![item].name,

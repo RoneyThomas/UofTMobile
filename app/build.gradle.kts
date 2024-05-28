@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "ca.utoronto.megaapp"
-        minSdk = 34
+        minSdk = 26
         targetSdk = 34
         versionCode = 4
         versionName = "4.0.0"
@@ -77,8 +77,6 @@ dependencies {
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.rssparser)
-//    implementation(libs.reorderable)
-//    implementation(libs.glide)
     implementation(libs.androidx.recyclerview)
     implementation(libs.coil)
     implementation(libs.coil.compose)

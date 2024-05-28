@@ -6,4 +6,5 @@ data class BookmarkDTO(
     val url: String,
     val imageLocalName: String,
     val imageURL: String,
+    val showRemoveIcon: Boolean
 )
