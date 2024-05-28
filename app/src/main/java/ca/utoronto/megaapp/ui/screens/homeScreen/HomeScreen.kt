@@ -70,6 +70,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.utoronto.megaapp.R
+import ca.utoronto.megaapp.ui.composables.AboutPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -327,85 +328,11 @@ fun HomeScreen(
                 }
             }
             if (aboutBottomSheet) {
-                ModalBottomSheet(
-                    onDismissRequest = {
-                        aboutBottomSheet = false
-                    }, sheetState = aboutSheetState
-                ) {
-                    // Sheet content
-                    Column(modifier = Modifier.padding(12.dp, 8.dp)) {
-                        Button(onClick = {
-                            scope.launch { aboutSheetState.hide() }.invokeOnCompletion {
-                                if (!aboutSheetState.isVisible) {
-                                    aboutBottomSheet = false
-                                }
-                            }
-                        }) {
-                            Text("Done")
-                        }
-                        Text(
-                            text = "Feedback",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                        Text(
-                            text = "Have any comments or suggestions on the content or layout of U of T Mobile? We'd love to hear it!",
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                        Button(
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("mailto:") // Only email apps handle this.
-                                    putExtra(Intent.EXTRA_EMAIL, "mad.lab@utoronto.ca")
-                                    putExtra(
-                                        Intent.EXTRA_SUBJECT, "UofT Mobile Feedback (v3.0, 4)"
-                                    )
-                                }
-                                context.startActivity(intent)
-                            },
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(top = 4.dp)
-                        ) {
-                            Text("Submit Feedback")
-                        }
-                        Text(
-                            text = "Version",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                        Text(text = "Version 3.0, Build 1", textAlign = TextAlign.Center)
-                        Text(
-                            text = "Settings",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                        Button(onClick = {
-                            appViewModel.resetBookmarks()
-                        }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                            Text("Reset U of T Mobile")
-                        }
-                        Button(onClick = {
-                            appViewModel.refresh()
-                        }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                            Text("Refresh Index")
-                        }
-                        Text("MADLab",
-                            textDecoration = TextDecoration.Underline,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 16.dp)
-                                .clickable {
-                                    val url = "https://mobile.utoronto.ca/"
-                                    val intent = CustomTabsIntent
-                                        .Builder()
-                                        .build()
-                                    intent.launchUrl(context, Uri.parse(url))
-                                })
-                    }
-                }
+                AboutPage(changeBottomSheet = { aboutBottomSheet = it},
+                    aboutSheetState = aboutSheetState,
+                    scope = scope,
+                    context = context,
+                    appViewModel = appViewModel).AboutPageMain()
             }
         }
     }
