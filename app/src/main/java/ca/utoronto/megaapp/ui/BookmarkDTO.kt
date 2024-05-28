@@ -7,25 +7,4 @@ data class BookmarkDTO(
     val imageLocalName: String,
     val imageURL: String,
     var showRemoveIcon: Boolean
-) {
-    override fun equals(other: Any?): Boolean {
-        return when (other) {
-            is BookmarkDTO -> {
-                this.id == other.id &&
-                        this.showRemoveIcon == other.showRemoveIcon
-            }
-
-            else -> false
-        }
-    }
-
-    override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + name.hashCode()
-        result = 31 * result + url.hashCode()
-        result = 31 * result + imageLocalName.hashCode()
-        result = 31 * result + imageURL.hashCode()
-        result = 31 * result + showRemoveIcon.hashCode()
-        return result
-    }
-}
+)

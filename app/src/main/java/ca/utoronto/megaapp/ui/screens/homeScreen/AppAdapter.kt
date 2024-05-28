@@ -160,7 +160,7 @@ class AppAdapter(
 
 object AppDiffCallback : DiffUtil.ItemCallback<BookmarkDTO>() {
     override fun areItemsTheSame(oldItem: BookmarkDTO, newItem: BookmarkDTO): Boolean {
-        return oldItem === newItem
+        return oldItem.id == newItem.id
     }
 
     override fun areContentsTheSame(oldItem: BookmarkDTO, newItem: BookmarkDTO): Boolean {
