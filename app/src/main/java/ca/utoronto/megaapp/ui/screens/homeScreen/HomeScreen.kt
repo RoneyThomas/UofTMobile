@@ -67,7 +67,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.utoronto.megaapp.R
-import ca.utoronto.megaapp.ui.composables.AboutPage
+import ca.utoronto.megaapp.ui.composables.SettingsPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -102,7 +102,7 @@ fun HomeScreen(
         unselectedTextColor = Color.White,
     )
     Scaffold(modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), topBar = {
-        TopAppBar(
+        CenterAlignedTopAppBar(
             colors = topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.surface,
@@ -329,13 +329,13 @@ fun HomeScreen(
                 }
             }
             if (aboutBottomSheet) {
-                AboutPage(
-                    changeBottomSheet = { aboutBottomSheet = it },
-                    aboutSheetState = aboutSheetState,
-                    scope = scope,
-                    context = context,
-                    appViewModel = appViewModel
-                ).AboutPageMain()
+                Log.d("Deleted", "Deleted")
+
+//                SettingsPage(
+//                    scope = scope,
+//                    context = context,
+//                    appViewModel = appViewModel
+//                ).SettingsPageMain()
             }
         }
     }
