@@ -1,11 +1,8 @@
 package ca.utoronto.megaapp.ui.screens.homeScreen
 
-import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import android.view.ViewGroup
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,7 +36,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -68,14 +64,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.utoronto.megaapp.R
-import ca.utoronto.megaapp.ui.composables.AboutPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -85,7 +79,7 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun HomeScreen(
-    appViewModel: AppViewModel, onNavigateToRssScreen: () -> Unit
+    appViewModel: AppViewModel, onNavigateToRssScreen: () -> Unit, onNavigateToAbout: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val addSheetState = rememberModalBottomSheetState()
@@ -254,7 +248,8 @@ fun HomeScreen(
                                             shape = RoundedCornerShape(50)
                                         )
                                         .weight(0.1f),
-                                    placeholder = { Text("Search") },
+                                    placeholder = {
+                                        Icon(Icons.Filled.Search, contentDescription = "Search") },
                                     colors = TextFieldDefaults.colors(
                                         focusedIndicatorColor = Color.Transparent,
                                         unfocusedIndicatorColor = Color.Transparent,
@@ -264,7 +259,7 @@ fun HomeScreen(
                                 Button(onClick = {
                                     scope.launch { addSheetState.hide() }.invokeOnCompletion {
                                         addBottomSheet = false
-                                        aboutBottomSheet = true
+                                        onNavigateToAbout()
                                     }
                                 }) {
                                     Text("About")

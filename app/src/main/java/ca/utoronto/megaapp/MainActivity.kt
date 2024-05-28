@@ -11,6 +11,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import ca.utoronto.megaapp.ui.composables.AboutPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.screens.homeScreen.HomeScreen
 import ca.utoronto.megaapp.ui.screens.rssFeed.RssScreen
@@ -44,12 +45,17 @@ fun UofTMobileNavHost(
         composable("home") {
             UofTMobileTheme {
                 HomeScreen(
-                    appViewModel
-                ) { navController.navigate("rssScreen") }
+                    appViewModel,
+                    { navController.navigate("rssScreen") },
+                    { navController.navigate("about") }
+                )
             }
         }
         composable("rssScreen") {
             UofTMobileTheme { RssScreen(appViewModel, navController) }
+        }
+        composable("about") {
+            UofTMobileTheme { AboutPage(appViewModel, navController).AboutPageMain() }
         }
     }
 }
