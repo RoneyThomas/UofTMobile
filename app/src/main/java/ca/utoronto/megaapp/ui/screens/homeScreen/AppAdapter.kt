@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
@@ -67,11 +69,15 @@ class AppAdapter(
                         }) {
                     Box(
                         Modifier
-                            .padding(16.dp, 16.dp, 16.dp, 8.dp)
+                            .padding(8.dp, 16.dp, 8.dp, 16.dp)
                             .size(64.dp)
+//                            .clip(CircleShape)
+//                            .clip(RoundedCornerShape(15.dp))
                             .background(
-                                MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(12.dp)
+                                Color(0xFF2F4675),
+//                                Color(0xFF003A4B)
+                                CircleShape
+//                                RoundedCornerShape(30.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -83,7 +89,7 @@ class AppAdapter(
                             ),
                             contentDescription = "University of Toronto Logo",
                             contentScale = ContentScale.Fit,
-                            modifier = Modifier.height(48.dp),
+                            modifier = Modifier.height(40.dp),
                         )
                         if (app.showRemoveIcon) {
                             AsyncImage(model = R.drawable.minus,
@@ -123,11 +129,11 @@ class AppAdapter(
 //                        }
                     }
                     Text(
-                        fontWeight = FontWeight.Medium,
+//                        fontWeight = FontWeight.Medium,
                         text = app.name,
                         textAlign = TextAlign.Center,
-                        color = Color.Black,
-                        style = MaterialTheme.typography.bodyLarge
+                        color = Color.DarkGray,
+                        style = MaterialTheme.typography.titleMedium
 //                            .copy(
 //                            shadow = Shadow(
 //                                color = Color.White,

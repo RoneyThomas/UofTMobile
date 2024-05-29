@@ -2,6 +2,7 @@ package ca.utoronto.megaapp.ui.screens.homeScreen
 
 import android.util.Log
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Toast
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
 import androidx.compose.foundation.BorderStroke
@@ -31,16 +32,15 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -61,6 +61,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -75,7 +77,6 @@ import androidx.recyclerview.widget.RecyclerView
 import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
-import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -100,26 +101,18 @@ fun HomeScreen(
     val jsonResponse = appViewModel.jsonResponse.value
     val context = LocalContext.current
 
-    val navItemColor = NavigationBarItemDefaults.colors(
-        selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        indicatorColor = Color.Transparent,
-        unselectedIconColor = Color.White,
-        unselectedTextColor = Color.White,
-    )
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 colors = topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.surface,
+                    containerColor = Color.Transparent,
                 ),
                 title = {
                     AsyncImage(
-                        model = R.drawable.uoftcrst_stacked_white_use_only_on_655,
+                        model = R.drawable.uoft,
                         contentDescription = "University of Toronto Logo",
-                        contentScale = ContentScale.Fit,
+//                        contentScale = ContentScale.FillHeight,
                         modifier = Modifier.height(48.dp)
                     )
                 },
@@ -130,7 +123,19 @@ fun HomeScreen(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Done,
-                                tint = MaterialTheme.colorScheme.surface,
+//                                tint = MaterialTheme.colorScheme.surface,
+                                contentDescription = "More"
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = {
+                            addBottomSheet = true
+                            showRemoveIcon = false
+                            appViewModel.setEditMode(false)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+//                                tint = MaterialTheme.colorScheme.surface,
                                 contentDescription = "More"
                             )
                         }
@@ -142,7 +147,7 @@ fun HomeScreen(
                         IconButton(onClick = { expanded = !expanded }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                tint = MaterialTheme.colorScheme.surface,
+//                                tint = MaterialTheme.colorScheme.surface,
                                 contentDescription = "More"
                             )
                         }
@@ -179,20 +184,20 @@ fun HomeScreen(
                 },
             )
         },
-        floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick =
-                {
-                    addBottomSheet = true
-                    showRemoveIcon = false
-                    appViewModel.setEditMode(false)
-                },
-                containerColor = MaterialTheme.colorScheme.primary,
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add")
-            }
-        },
+//        floatingActionButtonPosition = FabPosition.End,
+//        floatingActionButton = {
+//            FloatingActionButton(
+//                onClick =
+//                {
+//                    addBottomSheet = true
+//                    showRemoveIcon = false
+//                    appViewModel.setEditMode(false)
+//                },
+//                containerColor = MaterialTheme.colorScheme.primary,
+//            ) {
+//                Icon(Icons.Filled.Add, contentDescription = "Add", tint = MaterialTheme.colorScheme.surface)
+//            }
+//        },
 //        bottomBar = {
 //        var selectedItem by remember { mutableIntStateOf(-1) }
 //        NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
@@ -227,10 +232,20 @@ fun HomeScreen(
         PullToRefreshBox(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0XFFedfbfe),
+                            Color(0XFFb1ddee),
+                        ),
+                        start = Offset.Zero,
+                        end = Offset(0f, Float.POSITIVE_INFINITY)
+                    )
+                ),
 //                .background(
-//                    color = Color(0xFFD0D1C9)
-//                )
+//                    Color(0xFF6FC7EA)
+//                ),
 //                .paint(
 //                    painterResource(id = R.drawable.background), contentScale = ContentScale.Fit
 //                ),
@@ -239,29 +254,35 @@ fun HomeScreen(
                 appViewModel.refresh()
             },
         ) {
-
-            AndroidView(factory = {
-                RecyclerView(context).apply {
-                    layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-                    layoutManager = GridLayoutManager(context, 4)
-                    adapter = AppAdapter(
-                        onNavigateToRssScreen, appViewModel::removeBookmark, appViewModel
-                    ).also {
-                        it.submitList(
-                            bookmarksDTOList
-                        )
+            Card(
+                modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White, //Card background color
+//                    contentColor = Color.Black  //Card content color,e.g.text
+                )
+            ) {
+                AndroidView(factory = {
+                    RecyclerView(context).apply {
+                        layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+                        layoutManager = GridLayoutManager(context, 4)
+                        adapter = AppAdapter(
+                            onNavigateToRssScreen, appViewModel::removeBookmark, appViewModel
+                        ).also {
+                            it.submitList(
+                                bookmarksDTOList
+                            )
+                        }
+                        this.setPadding(6, 0, 6, 24)
                     }
-                    this.setPadding(16, 12, 16, 0)
-                }
-            }, update = {
-                if (showRemoveIcon == true) {
-                    itemTouchHelper.attachToRecyclerView(it)
-                } else {
-                    itemTouchHelper.attachToRecyclerView(null)
-                }
-                (it.adapter as AppAdapter).submitList(bookmarksDTOList)
-            })
-
+                }, update = {
+                    if (showRemoveIcon == true) {
+                        itemTouchHelper.attachToRecyclerView(it)
+                    } else {
+                        itemTouchHelper.attachToRecyclerView(null)
+                    }
+                    (it.adapter as AppAdapter).submitList(bookmarksDTOList)
+                })
+            }
             if (showBookmarkInstructions.value == true) {
                 Box(
                     modifier = Modifier
@@ -316,11 +337,14 @@ fun HomeScreen(
                                         focusedIndicatorColor = Color.Transparent,
                                         unfocusedIndicatorColor = Color.Transparent,
                                         unfocusedContainerColor = Color.Transparent,
-                                        focusedContainerColor = Color.Transparent),
-                                    trailingIcon = { Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = "Search"
-                                    )}
+                                        focusedContainerColor = Color.Transparent
+                                    ),
+                                    trailingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = "Search"
+                                        )
+                                    }
                                 )
                             }
                             LazyVerticalGrid(GridCells.Fixed(4),
