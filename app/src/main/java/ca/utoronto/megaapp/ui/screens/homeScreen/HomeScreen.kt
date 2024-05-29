@@ -4,7 +4,9 @@ import android.util.Log
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,11 +24,13 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,6 +45,9 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
@@ -294,32 +301,30 @@ fun HomeScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(16.dp, 0.dp)
                             ) {
-                                Button(onClick = {
-                                    scope.launch { addSheetState.hide() }.invokeOnCompletion {
-                                        if (!addSheetState.isVisible) {
-                                            addBottomSheet = false
-                                        }
-                                    }
-                                }) {
-                                    Text("Done")
-                                }
-                                OutlinedTextField(
+                                TextField(
                                     value = searchQuery ?: "", onValueChange = {
                                         appViewModel.searchQuery.value = it
                                     }, modifier = Modifier
-                                        .padding(
-                                            8.dp, 0.dp
+                                        .fillMaxWidth()
+                                        .border(
+                                            BorderStroke(
+                                                width = 2.dp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            ),
+                                            shape = RoundedCornerShape(50)
                                         )
-                                        .weight(1f)
+                                        .padding(8.dp, 0.dp),
+                                    placeholder = { Text("Search") },
+                                    colors = TextFieldDefaults.colors(
+                                        focusedIndicatorColor = Color.Transparent,
+                                        unfocusedIndicatorColor = Color.Transparent,
+                                        unfocusedContainerColor = Color.Transparent,
+                                        focusedContainerColor = Color.Transparent),
+                                    trailingIcon = { Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = "Search"
+                                    )}
                                 )
-                                Button(onClick = {
-                                    scope.launch { addSheetState.hide() }.invokeOnCompletion {
-                                        addBottomSheet = false
-                                        aboutBottomSheet = true
-                                    }
-                                }) {
-                                    Text("About")
-                                }
                             }
                             LazyVerticalGrid(GridCells.Fixed(4),
                                 // content padding
