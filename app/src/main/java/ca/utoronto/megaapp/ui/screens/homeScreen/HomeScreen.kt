@@ -28,9 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,14 +39,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -57,6 +53,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -64,18 +61,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.utoronto.megaapp.R
+import ca.utoronto.megaapp.ui.composables.AboutPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -85,7 +86,7 @@ import kotlinx.coroutines.launch
 )
 @Composable
 fun HomeScreen(
-    appViewModel: AppViewModel, onNavigateToRssScreen: () -> Unit
+    appViewModel: AppViewModel, onNavigateToRssScreen: () -> Unit, onNavigateToAbout: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val addSheetState = rememberModalBottomSheetState()
@@ -268,7 +269,7 @@ fun HomeScreen(
             if (showBookmarkInstructions.value == true) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopStart)
+                        .align(Alignment.BottomCenter)
                         .padding(8.dp)
                         .clip(shape = RoundedCornerShape(8.dp))
                         .background(Color(0XCC1E3765))
@@ -301,10 +302,20 @@ fun HomeScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(16.dp, 0.dp)
                             ) {
+                                Button(onClick = {
+                                    scope.launch { addSheetState.hide() }.invokeOnCompletion {
+                                        if (!addSheetState.isVisible) {
+                                            addBottomSheet = false
+                                        }
+                                    }
+                                }) {
+                                    Text("Done")
+                                }
                                 TextField(
                                     value = searchQuery ?: "", onValueChange = {
                                         appViewModel.searchQuery.value = it
                                     }, modifier = Modifier
+                                        .padding(8.dp, 0.dp)
                                         .fillMaxWidth()
                                         .border(
                                             BorderStroke(
@@ -313,18 +324,23 @@ fun HomeScreen(
                                             ),
                                             shape = RoundedCornerShape(50)
                                         )
-                                        .padding(8.dp, 0.dp),
-                                    placeholder = { Text("Search") },
+                                        .weight(0.1f),
+                                    placeholder = {
+                                        Icon(Icons.Filled.Search, contentDescription = "Search") },
                                     colors = TextFieldDefaults.colors(
                                         focusedIndicatorColor = Color.Transparent,
                                         unfocusedIndicatorColor = Color.Transparent,
                                         unfocusedContainerColor = Color.Transparent,
-                                        focusedContainerColor = Color.Transparent),
-                                    trailingIcon = { Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = "Search"
-                                    )}
+                                        focusedContainerColor = Color.Transparent)
                                 )
+                                Button(onClick = {
+                                    scope.launch { addSheetState.hide() }.invokeOnCompletion {
+                                        addBottomSheet = false
+                                        onNavigateToAbout()
+                                    }
+                                }) {
+                                    Text("About")
+                                }
                             }
                             LazyVerticalGrid(GridCells.Fixed(4),
                                 // content padding
@@ -401,13 +417,12 @@ fun HomeScreen(
                 }
             }
             if (aboutBottomSheet) {
-                Log.d("Deleted", "Deleted")
-
-//                SettingsPage(
+                Log.d("Main Activity", "Deleted")
+//                AboutPage(changeBottomSheet = { aboutBottomSheet = it},
+//                    aboutSheetState = aboutSheetState,
 //                    scope = scope,
 //                    context = context,
-//                    appViewModel = appViewModel
-//                ).SettingsPageMain()
+//                    appViewModel = appViewModel).AboutPageMain()
             }
         }
     }

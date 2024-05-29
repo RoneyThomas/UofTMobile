@@ -34,12 +34,12 @@ import androidx.navigation.NavHostController
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import kotlinx.coroutines.CoroutineScope
 
-class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
+class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
     (private var appViewModel: AppViewModel, private var navController: NavHostController){
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun SettingsPageMain() {
+    fun AboutPageMain() {
         val context = LocalContext.current
 //        val rssFeed = appViewModel.getRssFeed().observeAsState().value
         Log.d("MainActivity", "SettingsPage: ")
@@ -48,7 +48,7 @@ class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
                 containerColor = MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.surface,
             ), title = {
-                Text("Settings")
+                Text("About")
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
@@ -111,7 +111,7 @@ class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun AboutPageButton(onClickEffect: () -> Unit, text: String,
-                        alignment: Alignment.Horizontal = Alignment.CenterHorizontally){
+                                alignment: Alignment.Horizontal = Alignment.CenterHorizontally){
         Column(modifier = Modifier.fillMaxWidth()){
             OutlinedButton(onClick = onClickEffect,
                 modifier = Modifier.align(alignment).padding(vertical = 8.dp)) {

@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.DiffUtil
@@ -70,7 +71,7 @@ class AppAdapter(
                             .size(64.dp)
                             .background(
                                 MaterialTheme.colorScheme.primary,
-                                RoundedCornerShape(8.dp)
+                                RoundedCornerShape(12.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -122,12 +123,14 @@ class AppAdapter(
 //                        }
                     }
                     Text(
+                        fontWeight = FontWeight.Medium,
                         text = app.name,
                         textAlign = TextAlign.Center,
-//                        color = Color.White,
-//                        style = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color.Black,
+                        style = MaterialTheme.typography.bodyLarge
+//                            .copy(
 //                            shadow = Shadow(
-//                                color = Color.Black,
+//                                color = Color.White,
 //                                offset = Offset(2f, 2f),
 //                                blurRadius = 8f
 //                            )
