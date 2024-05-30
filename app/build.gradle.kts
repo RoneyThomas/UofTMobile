@@ -13,8 +13,8 @@ android {
         applicationId = "ca.utoronto.megaapp"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "4.0.0"
+        versionCode = 3
+        versionName = "3.9.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -67,19 +67,18 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.okhttp)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.extensions)
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.rssparser)
     implementation(libs.androidx.recyclerview)
-    implementation(libs.coil)
+    implementation(libs.okhttp)
+    implementation(libs.rssparser)
     implementation(libs.coil.compose)
+    implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -36,14 +36,12 @@ import coil.compose.AsyncImage
 import kotlin.reflect.KFunction1
 
 class AppAdapter(
-    onNavigateToRssScreen: () -> Unit, removeApp: KFunction1<String, Unit>,
+    onNavigateToRssScreen: () -> Unit, private val removeApp: KFunction1<String, Unit>,
     private val appViewModel: AppViewModel
 ) :
     ListAdapter<BookmarkDTO, AppAdapter.AppViewHolder>(AppDiffCallback) {
     private val navigate = onNavigateToRssScreen
-    private val removeApp = removeApp
 
-    /* ViewHolder for Flower, takes in the inflated view and the onClick behavior. */
     class AppViewHolder(private val composeView: ComposeView) :
         RecyclerView.ViewHolder(composeView) {
         private var currentApp: BookmarkDTO? = null
@@ -59,6 +57,7 @@ class AppAdapter(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .clickable {
+                            // When Eng. is clicked we need to show Eng RSS feed
                             if (app.id == "newseng") {
                                 onNavigateToRssScreen.invoke()
                             } else {
@@ -74,13 +73,11 @@ class AppAdapter(
                             .background(
                                 roundBookmarkBlue,
                                 CircleShape
-//                                RoundedCornerShape(30.dp)
                             ),
-//                        contentAlignment = Alignment.Center
                     ) {
                         AsyncImage(
                             model = composeView.context.resources.getIdentifier(
-                                app.imageLocalName.lowercase(),
+                                app.imageLocation,
                                 "drawable",
                                 composeView.context.packageName
                             ),
@@ -111,61 +108,14 @@ class AppAdapter(
                                     contentDescription = "Remove Bookmark",
                                 )
                             }
-
-//                                AsyncImage(model = R.drawable.minus,
-//                                    contentDescription = "Remove Button",
-//                                    modifier = Modifier
-//                                        .clickable {
-//                                            Log.d(
-//                                                "Remove Button",
-//                                                "CenterAlignedTopAppBarExample: " + app.id
-//                                            )
-//                                            removeApp(app.id)
-////                                    if ((appViewModel.bookmarks.value?.size
-////                                            ?: 0) <= 0
-////                                    ) {
-////                                        showRemoveIcon = false
-////                                    }
-////                                    appViewModel.removeBookmark(app.id)
-//                                        })
                         }
-//                        if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
-//                                app.id
-//                            )
-//                        ) {
-//                            AsyncImage(model = R.drawable.minus,
-//                                contentDescription = "Remove Button",
-//                                modifier = Modifier.clickable {
-//                                    Log.d(
-//                                        "Remove Button",
-//                                        "CenterAlignedTopAppBarExample: " + app.id
-//                                    )
-//                                    if ((appViewModel.bookmarks.value?.size
-//                                            ?: 0) <= 0
-//                                    ) {
-//                                        showRemoveIcon = false
-//                                    }
-//                                    appViewModel.removeBookmark(app.id)
-//                                })
-//                        }
                     }
                     Text(
                         fontWeight = FontWeight.Medium,
-//                        fontFamily = Bembo,
-//                        fontWeight = FontWeight.Bold,
                         text = app.name,
                         textAlign = TextAlign.Center,
                         color = Color.DarkGray,
-//                        style = ,
-//                        style = TextStyle(lineBreak = LineBreak.Heading),
                         softWrap = true
-//                            .copy(
-//                            shadow = Shadow(
-//                                color = Color.White,
-//                                offset = Offset(2f, 2f),
-//                                blurRadius = 8f
-//                            )
-//                        )
                     )
                 }
             }

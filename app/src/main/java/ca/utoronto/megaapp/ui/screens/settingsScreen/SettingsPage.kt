@@ -1,4 +1,4 @@
-package ca.utoronto.megaapp.ui.composables
+package ca.utoronto.megaapp.ui.screens.settingsScreen
 
 import android.app.Activity
 import android.content.Intent
@@ -37,17 +37,17 @@ import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 
-class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
+class SettingsPage
     (private var appViewModel: AppViewModel, private var navController: NavHostController) {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun AboutPageMain() {
         // Sets the navigationBarColor, remove this in future when switching to dynamic theming
-        (LocalView.current.context as Activity).window.navigationBarColor = Color.Transparent.toArgb()
+        (LocalView.current.context as Activity).window.navigationBarColor =
+            Color.Transparent.toArgb()
 
         val context = LocalContext.current
-//        val rssFeed = appViewModel.getRssFeed().observeAsState().value
         Log.d("MainActivity", "SettingsPage: ")
         Scaffold(topBar = {
             TopAppBar(colors = topAppBarColors(
@@ -74,7 +74,7 @@ class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
                 AboutPageSection(mainText = "Settings", subText = "")
 
                 Text("Reset UofT Mobile", modifier = Modifier.clickable {
-                    Toast.makeText(context, "Bookmark Reset", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Bookmarks Reset", Toast.LENGTH_SHORT).show()
                     appViewModel.resetBookmarks()
                 })
                 Text("Refresh Index", modifier = Modifier.clickable {
@@ -90,20 +90,28 @@ class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
 
                 AboutPageSection(
                     mainText = "Feedback",
-                    subText = "Have any comments or suggestions on the content or layout of U of T Mobile? " +
-                            "We'd love to hear it!"
+                    subText = "Have any comments or suggestions on the content or layout of U of T Mobile? " + "We'd love to hear it!"
                 )
 
-                AboutPageButton(onClickEffect = {
-                    val intent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("mailto:") // Only email apps handle this.
-                        putExtra(Intent.EXTRA_EMAIL, "mad.lab@utoronto.ca")
-                        putExtra(
-                            Intent.EXTRA_SUBJECT, "UofT Mobile Feedback (v3.0, 4)"
-                        )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:") // Only email apps handle this.
+                                putExtra(Intent.EXTRA_EMAIL, "mad.lab@utoronto.ca")
+                                putExtra(
+                                    Intent.EXTRA_SUBJECT, "UofT Mobile Feedback (v3.0, 4)"
+                                )
+                            }
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(vertical = 8.dp),
+                    ) {
+                        Text("Submit Feedback")
                     }
-                    context.startActivity(intent)
-                }, text = "Submit Feedback")
+                }
 
                 AsyncImage(model = R.drawable.madlab,
                     contentDescription = "Mobile Application Lab logo",
@@ -116,44 +124,6 @@ class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
                                 .build()
                             intent.launchUrl(context, Uri.parse(url))
                         })
-
-//                Text("MADLab",
-//                    textDecoration = TextDecoration.Underline,
-//                    textAlign = TextAlign.Center,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(top = 16.dp)
-//                        .clickable {
-//                            val url = "https://mobile.utoronto.ca/"
-//                            val intent = CustomTabsIntent
-//                                .Builder()
-//                                .build()
-//                            intent.launchUrl(context, Uri.parse(url))
-//                        })
-
-//                AboutPageButton(onClickEffect = { appViewModel.resetBookmarks() },
-//                    text = "Reset U of T Mobile")
-//
-//                AboutPageButton(onClickEffect = { appViewModel.refresh() },
-//                    text = "Refresh Index")
-            }
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun AboutPageButton(
-        onClickEffect: () -> Unit, text: String,
-        alignment: Alignment.Horizontal = Alignment.CenterHorizontally
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Button(
-                onClick = onClickEffect,
-                modifier = Modifier
-                    .align(alignment)
-                    .padding(vertical = 8.dp),
-            ) {
-                Text(text)
             }
         }
     }
@@ -164,10 +134,7 @@ class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
             text = mainText,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.secondaryContainer
-//            fontSize = 18.sp,
-//            modifier = Modifier.padding(top = 8.dp, bottom = 10.dp)
         )
-        if (subText.isNotEmpty())
-            Text(text = subText)
+        if (subText.isNotEmpty()) Text(text = subText)
     }
 }

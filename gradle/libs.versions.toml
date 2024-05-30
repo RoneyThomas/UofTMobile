@@ -20,7 +20,6 @@ navigationCompose = "2.8.0-beta02"
 rssparser = "6.0.8"
 material3= "1.3.0-beta02"
 recyclerview = "1.4.0-alpha01"
-coil = "2.6.0"
 coilCompose = "2.6.0"
 
 [libraries]
@@ -49,7 +48,6 @@ androidx-preference-ktx = { group = "androidx.preference", name = "preference-kt
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 rssparser = { group = "com.prof18.rssparser", name = "rssparser", version.ref = "rssparser" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
-coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
 
 [plugins]

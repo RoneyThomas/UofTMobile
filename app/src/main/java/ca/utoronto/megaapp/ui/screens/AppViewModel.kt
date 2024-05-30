@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File
+import java.util.Locale
 
 class AppViewModel(private val application: Application) : AndroidViewModel(application) {
 
@@ -47,7 +48,7 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
     var showRemoveIcon = MutableLiveData(false)
 
     var searchQuery = MutableLiveData("")
-    var refresh = MutableLiveData(false)
+    private var refresh = MutableLiveData(false)
     private var updateList: MutableList<BookmarkDTO> = mutableListOf()
 
     private lateinit var rssFeed: LiveData<RssChannel>
@@ -121,8 +122,7 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
                                     it.id,
                                     it.name,
                                     it.url,
-                                    it.imageLocalName,
-                                    it.imageURL,
+                                    it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
                                     false
                                 )
                             }?.toMutableList() ?: mutableListOf()
@@ -142,7 +142,13 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
                 jsonResponse.value?.mandatoryApps?.contains(it.id)
                     ?: false
             }?.map {
-                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL, false)
+                BookmarkDTO(
+                    it.id,
+                    it.name,
+                    it.url,
+                    it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
+                    false
+                )
             }?.toMutableList() ?: mutableListOf()
         bookmarksDTOList.value = updateList
         savePreference()
@@ -187,8 +193,7 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
                             it.id,
                             it.name,
                             it.url,
-                            it.imageLocalName,
-                            it.imageURL,
+                            it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
                             false
                         )
                     }

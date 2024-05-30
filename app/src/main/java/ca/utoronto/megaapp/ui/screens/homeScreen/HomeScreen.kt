@@ -88,7 +88,9 @@ import coil.compose.AsyncImage
 )
 @Composable
 fun HomeScreen(
-    appViewModel: AppViewModel, onNavigateToRssScreen: () -> Unit, onNavigateToAbout: () -> Unit
+    appViewModel: AppViewModel,
+    onNavigateToRssScreen: () -> Unit,
+    onNavigateToSettingsScreen: () -> Unit
 ) {
     // Sets the navigationBarColor, remove this in future when switching to dynamic theming
     (LocalView.current.context as Activity).window.navigationBarColor = lightBlue.toArgb()
@@ -163,7 +165,7 @@ fun HomeScreen(
                                 overFlowMenuExpanded = false
                             })
                             DropdownMenuItem(text = { Text("Setting") }, onClick = {
-                                onNavigateToAbout()
+                                onNavigateToSettingsScreen()
                                 overFlowMenuExpanded = false
                             })
                         }
@@ -189,7 +191,6 @@ fun HomeScreen(
                 modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 12.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White, //Card background color
-//                    contentColor = Color.Black  //Card content color,e.g.text
                 )
             ) {
                 AndroidView(factory = {
@@ -306,7 +307,7 @@ fun HomeScreen(
                                                 }) {
                                                 Box(
                                                     Modifier
-                                                        .padding(8.dp, 16.dp, 8.dp, 16.dp)
+                                                        .padding(8.dp, 8.dp, 8.dp, 24.dp)
                                                         .size(52.dp)
                                                         .background(
                                                             Color(0xFF2F4675), CircleShape
