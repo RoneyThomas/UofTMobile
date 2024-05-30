@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ca.utoronto.megaapp.ui.BookmarkDTO
 import ca.utoronto.megaapp.ui.screens.AppViewModel
+import ca.utoronto.megaapp.ui.theme.roundBookmarkBlue
 import coil.compose.AsyncImage
 import kotlin.reflect.KFunction1
 
@@ -70,11 +71,8 @@ class AppAdapter(
                         Modifier
                             .padding(8.dp, 16.dp, 8.dp, 16.dp)
                             .size(52.dp)
-//                            .clip(CircleShape)
-//                            .clip(RoundedCornerShape(15.dp))
                             .background(
-                                Color(0xFF2F4675),
-//                                Color(0xFF003A4B)
+                                roundBookmarkBlue,
                                 CircleShape
 //                                RoundedCornerShape(30.dp)
                             ),

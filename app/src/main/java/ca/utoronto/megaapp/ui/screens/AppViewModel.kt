@@ -144,7 +144,8 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
             }?.map {
                 BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL, false)
             }?.toMutableList() ?: mutableListOf()
-        bookmarksDTOList.postValue(updateList)
+        bookmarksDTOList.value = updateList
+        savePreference()
     }
 
     fun filteredSections(): LiveData<Map<String, SectionsDTO>> = searchQuery.switchMap { query ->
@@ -207,18 +208,17 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
         sharedPreferences.edit()
             .putString(
                 "bookmarks",
-                bookmarksDTOList.value?.map { it.id }?.joinToString(separator = ",")
+                bookmarksDTOList.value?.joinToString(separator = ",") { it.id }
             )
             .apply()
     }
 
     @OptIn(ExperimentalCoilApi::class)
     fun resetBookmarks() {
+        resetToMandatoryApps()
         client.cache?.evictAll()
         application.imageLoader.diskCache?.clear()
         application.imageLoader.memoryCache?.clear()
-        resetToMandatoryApps()
-        savePreference()
         showBookmarkInstructions.value = true
         sharedPreferences.edit()
             .putBoolean("showBookmarkInstructions", true).apply()

@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Bundle
 import android.view.Window
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
@@ -24,15 +25,7 @@ import ca.utoronto.megaapp.ui.theme.UofTMobileTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-//            statusBarStyle = SystemBarStyle.dark(
-//                scrim = Color.Transparent.toArgb(),
-//            ),
-//            navigationBarStyle = SystemBarStyle.light(
-//                scrim = Color.Transparent.toArgb(),
-//                darkScrim = Color.Transparent.toArgb()
-//            )
-        )
+        enableEdgeToEdge()
         setContent {
             val window: Window = this.window
             window.navigationBarColor = Color.Transparent.toArgb()
