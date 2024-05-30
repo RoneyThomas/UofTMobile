@@ -4,10 +4,8 @@ import android.app.Application
 import android.os.Bundle
 import android.view.Window
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,7 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import ca.utoronto.megaapp.ui.composables.AboutPage
+import ca.utoronto.megaapp.ui.composables.SettingsPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.screens.homeScreen.HomeScreen
 import ca.utoronto.megaapp.ui.screens.rssFeed.RssScreen
@@ -62,15 +60,15 @@ fun UofTMobileNavHost(
                 HomeScreen(
                     appViewModel,
                     { navController.navigate("rssScreen") },
-                    { navController.navigate("about") }
+                    { navController.navigate("settings") }
                 )
             }
         }
         composable("rssScreen") {
             UofTMobileTheme { RssScreen(appViewModel, navController) }
         }
-        composable("about") {
-            UofTMobileTheme { AboutPage(appViewModel, navController).AboutPageMain() }
+        composable("settings") {
+            UofTMobileTheme { SettingsPage(appViewModel, navController).AboutPageMain() }
         }
     }
 }

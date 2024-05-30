@@ -12,15 +12,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.BookmarkDTO
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
@@ -70,7 +69,7 @@ class AppAdapter(
                     Box(
                         Modifier
                             .padding(8.dp, 16.dp, 8.dp, 16.dp)
-                            .size(64.dp)
+                            .size(52.dp)
 //                            .clip(CircleShape)
 //                            .clip(RoundedCornerShape(15.dp))
                             .background(
@@ -79,7 +78,7 @@ class AppAdapter(
                                 CircleShape
 //                                RoundedCornerShape(30.dp)
                             ),
-                        contentAlignment = Alignment.Center
+//                        contentAlignment = Alignment.Center
                     ) {
                         AsyncImage(
                             model = composeView.context.resources.getIdentifier(
@@ -89,24 +88,48 @@ class AppAdapter(
                             ),
                             contentDescription = "University of Toronto Logo",
                             contentScale = ContentScale.Fit,
-                            modifier = Modifier.height(40.dp),
+                            modifier = Modifier
+                                .height(32.dp)
+                                .align(Alignment.Center),
                         )
+
                         if (app.showRemoveIcon) {
-                            AsyncImage(model = R.drawable.minus,
-                                contentDescription = "Remove Button",
-                                modifier = Modifier.clickable {
-                                    Log.d(
-                                        "Remove Button",
-                                        "CenterAlignedTopAppBarExample: " + app.id
+                            IconButton(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Red)
+                                    .align(
+                                        Alignment.TopEnd
                                     )
+                                    .size(8.dp), onClick = {
                                     removeApp(app.id)
-//                                    if ((appViewModel.bookmarks.value?.size
-//                                            ?: 0) <= 0
-//                                    ) {
-//                                        showRemoveIcon = false
-//                                    }
-//                                    appViewModel.removeBookmark(app.id)
-                                })
+                                }
+
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    tint = Color.White,
+                                    contentDescription = "Remove Bookmark",
+                                )
+                            }
+
+//                                AsyncImage(model = R.drawable.minus,
+//                                    contentDescription = "Remove Button",
+//                                    modifier = Modifier
+//                                        .clickable {
+//                                            Log.d(
+//                                                "Remove Button",
+//                                                "CenterAlignedTopAppBarExample: " + app.id
+//                                            )
+//                                            removeApp(app.id)
+////                                    if ((appViewModel.bookmarks.value?.size
+////                                            ?: 0) <= 0
+////                                    ) {
+////                                        showRemoveIcon = false
+////                                    }
+////                                    appViewModel.removeBookmark(app.id)
+//                                        })
                         }
 //                        if (showRemoveIcon && !jsonResponse!!.mandatoryApps.contains(
 //                                app.id
@@ -129,11 +152,15 @@ class AppAdapter(
 //                        }
                     }
                     Text(
-//                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Medium,
+//                        fontFamily = Bembo,
+//                        fontWeight = FontWeight.Bold,
                         text = app.name,
                         textAlign = TextAlign.Center,
                         color = Color.DarkGray,
-                        style = MaterialTheme.typography.titleMedium
+//                        style = ,
+//                        style = TextStyle(lineBreak = LineBreak.Heading),
+                        softWrap = true
 //                            .copy(
 //                            shadow = Shadow(
 //                                color = Color.White,

@@ -1,9 +1,9 @@
 package ca.utoronto.megaapp.ui.composables
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,11 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -26,16 +27,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.screens.AppViewModel
-import kotlinx.coroutines.CoroutineScope
+import coil.compose.AsyncImage
 
-class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
-    (private var appViewModel: AppViewModel, private var navController: NavHostController){
+class SettingsPage @OptIn(ExperimentalMaterial3Api::class) constructor
+    (private var appViewModel: AppViewModel, private var navController: NavHostController) {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -48,7 +47,7 @@ class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
                 containerColor = MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.surface,
             ), title = {
-                Text("About")
+                Text("Settings")
             }, navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
@@ -65,9 +64,28 @@ class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
                     .padding(horizontal = 16.dp)
                     .padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                AboutPageSection(mainText = "Feedback",
+                AboutPageSection(mainText = "Settings", subText = "")
+
+                Text("Reset UofT Mobile", modifier = Modifier.clickable {
+                    Toast.makeText(context, "Bookmark Reset", Toast.LENGTH_SHORT).show()
+                    appViewModel.resetBookmarks()
+                })
+                Text("Refresh Index", modifier = Modifier.clickable {
+                    Toast.makeText(context, "Refreshed Index", Toast.LENGTH_SHORT).show()
+                    appViewModel.refresh()
+                })
+
+                HorizontalDivider()
+
+                AboutPageSection(mainText = "Version", subText = "Version 3.0, Build 1")
+
+                HorizontalDivider()
+
+                AboutPageSection(
+                    mainText = "Feedback",
                     subText = "Have any comments or suggestions on the content or layout of U of T Mobile? " +
-                            "We'd love to hear it!")
+                            "We'd love to hear it!"
+                )
 
                 AboutPageButton(onClickEffect = {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
@@ -80,22 +98,10 @@ class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
                     context.startActivity(intent)
                 }, text = "Submit Feedback")
 
-                AboutPageSection(mainText = "Version", subText = "Version 3.0, Build 1")
-
-                AboutPageSection(mainText = "Settings", subText = "")
-
-                AboutPageButton(onClickEffect = { appViewModel.resetBookmarks() },
-                    text = "Reset U of T Mobile")
-
-                AboutPageButton(onClickEffect = { appViewModel.refresh() },
-                    text = "Refresh Index")
-
-                Text("MADLab",
-                    textDecoration = TextDecoration.Underline,
-                    textAlign = TextAlign.Center,
+                AsyncImage(model = R.drawable.madlab,
+                    contentDescription = "Mobile Application Lab logo",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp)
+                        .align(Alignment.CenterHorizontally)
                         .clickable {
                             val url = "https://mobile.utoronto.ca/"
                             val intent = CustomTabsIntent
@@ -104,32 +110,57 @@ class AboutPage @OptIn(ExperimentalMaterial3Api::class) constructor
                             intent.launchUrl(context, Uri.parse(url))
                         })
 
+//                Text("MADLab",
+//                    textDecoration = TextDecoration.Underline,
+//                    textAlign = TextAlign.Center,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(top = 16.dp)
+//                        .clickable {
+//                            val url = "https://mobile.utoronto.ca/"
+//                            val intent = CustomTabsIntent
+//                                .Builder()
+//                                .build()
+//                            intent.launchUrl(context, Uri.parse(url))
+//                        })
+
+//                AboutPageButton(onClickEffect = { appViewModel.resetBookmarks() },
+//                    text = "Reset U of T Mobile")
+//
+//                AboutPageButton(onClickEffect = { appViewModel.refresh() },
+//                    text = "Refresh Index")
             }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AboutPageButton(onClickEffect: () -> Unit, text: String,
-                                alignment: Alignment.Horizontal = Alignment.CenterHorizontally){
-        Column(modifier = Modifier.fillMaxWidth()){
-            OutlinedButton(onClick = onClickEffect,
-                modifier = Modifier.align(alignment).padding(vertical = 8.dp)) {
+    private fun AboutPageButton(
+        onClickEffect: () -> Unit, text: String,
+        alignment: Alignment.Horizontal = Alignment.CenterHorizontally
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = onClickEffect,
+                modifier = Modifier
+                    .align(alignment)
+                    .padding(vertical = 8.dp),
+            ) {
                 Text(text)
             }
         }
     }
 
     @Composable
-    private fun AboutPageSection(mainText: String, subText: String){
+    private fun AboutPageSection(mainText: String, subText: String) {
         Text(
             text = mainText,
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            modifier = Modifier.padding(top = 8.dp, bottom = 10.dp)
+            color = MaterialTheme.colorScheme.secondaryContainer
+//            fontSize = 18.sp,
+//            modifier = Modifier.padding(top = 8.dp, bottom = 10.dp)
         )
         if (subText.isNotEmpty())
-            Text(text = subText, textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth())
+            Text(text = subText)
     }
 }

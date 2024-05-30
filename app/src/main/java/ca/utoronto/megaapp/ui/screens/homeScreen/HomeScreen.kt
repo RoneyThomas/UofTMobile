@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -70,7 +71,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -154,7 +154,8 @@ fun HomeScreen(
 
                         DropdownMenu(
                             expanded = expanded,
-                            onDismissRequest = { expanded = false }
+                            onDismissRequest = { expanded = false },
+                            containerColor = MaterialTheme.colorScheme.surface
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Edit") },
@@ -167,7 +168,8 @@ fun HomeScreen(
                             DropdownMenuItem(
                                 text = { Text("Setting") },
                                 onClick = {
-                                    Toast.makeText(context, "Setting", Toast.LENGTH_SHORT).show()
+                                    onNavigateToAbout()
+//                                    Toast.makeText(context, "Setting", Toast.LENGTH_SHORT).show()
                                     expanded = false
                                 }
                             )
@@ -355,11 +357,15 @@ fun HomeScreen(
                                     searchSections?.forEach { (key, value) ->
                                         run {
                                             item(span = { GridItemSpan(maxLineSpan) }) {
+
                                                 Text(
                                                     text = key,
-                                                    fontWeight = FontWeight.Medium,
-                                                    fontSize = 16.sp,
-                                                    lineHeight = 24.sp
+//                                                    style = MaterialTheme.typography.titleLarge,
+                                                    modifier = Modifier.padding(vertical = 12.dp),
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.secondaryContainer
+//                                                    fontSize = 16.sp,
+//                                                    lineHeight = 24.sp
                                                 )
                                             }
                                             items(value.apps.toList()) { item ->
@@ -374,12 +380,17 @@ fun HomeScreen(
                                                     }) {
                                                     Box(
                                                         Modifier
-                                                            .padding(16.dp, 16.dp, 16.dp, 8.dp)
-                                                            .size(64.dp)
+                                                            .padding(8.dp, 16.dp, 8.dp, 16.dp)
+                                                            .size(52.dp)
+//                            .clip(CircleShape)
+//                            .clip(RoundedCornerShape(15.dp))
                                                             .background(
-                                                                MaterialTheme.colorScheme.primary,
-                                                                RoundedCornerShape(8.dp)
-                                                            ), contentAlignment = Alignment.Center
+                                                                Color(0xFF2F4675),
+//                                Color(0xFF003A4B)
+                                                                CircleShape
+//                                RoundedCornerShape(30.dp)
+                                                            ),
+                                                        contentAlignment = Alignment.Center
                                                     ) {
                                                         AsyncImage(
                                                             model = context.resources.getIdentifier(
@@ -389,7 +400,7 @@ fun HomeScreen(
                                                             ),
                                                             contentDescription = "University of Toronto Logo",
                                                             contentScale = ContentScale.Fit,
-                                                            modifier = Modifier.height(48.dp)
+                                                            modifier = Modifier.height(32.dp),
                                                         )
                                                         if (bookmarksDTOList?.any { item1 -> item1.id == jsonResponse.apps[item].id } == true) {
                                                             AsyncImage(
@@ -399,11 +410,23 @@ fun HomeScreen(
                                                         }
                                                     }
                                                     Text(
+
+                                                        fontWeight = FontWeight.Medium,
+//                        fontFamily = Bembo,
+//                        fontWeight = FontWeight.Bold,
                                                         text = jsonResponse?.apps!![item].name,
-                                                        fontWeight = FontWeight.Bold,
-                                                        fontSize = 12.sp,
-                                                        color = Color.Black,
                                                         textAlign = TextAlign.Center,
+                                                        color = Color.DarkGray,
+//                        style = ,
+//                        style = TextStyle(lineBreak = LineBreak.Heading),
+                                                        softWrap = true
+//                            .copy(
+//                            shadow = Shadow(
+//                                color = Color.White,
+//                                offset = Offset(2f, 2f),
+//                                blurRadius = 8f
+//                            )
+//                        )
                                                     )
                                                 }
                                             }
@@ -411,13 +434,13 @@ fun HomeScreen(
                                     }
                                 })
                         }
-                        AsyncImage(
-                            model = R.drawable.background,
-                            contentDescription = "UofT Logo",
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .height(256.dp)
-                        )
+//                        AsyncImage(
+//                            model = R.drawable.background,
+//                            contentDescription = "UofT Logo",
+//                            modifier = Modifier
+//                                .align(Alignment.Center)
+//                                .height(256.dp)
+//                        )
                     }
                 }
             }
