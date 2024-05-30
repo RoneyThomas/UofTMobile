@@ -18,8 +18,8 @@ val itemTouchHelper by lazy {
             target: RecyclerView.ViewHolder
         ): Boolean {
             val adapter = recyclerView.adapter as AppAdapter
-            val from = viewHolder.bindingAdapterPosition
-            val to = target.bindingAdapterPosition
+            val from = viewHolder.absoluteAdapterPosition
+            val to = target.absoluteAdapterPosition
             // Update the state of bookmarks whenever an item moves, implemented in adapter
             adapter.moveItem(from, to)
             // After an bookmark is moved tell the the adapter about the movement, so that it can re-render with new state

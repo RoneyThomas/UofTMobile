@@ -212,6 +212,7 @@ fun HomeScreen(
                     } else {
                         itemTouchHelper.attachToRecyclerView(null)
                     }
+                    Log.d("HomeScreen", bookmarksDTOList.toString())
                     (it.adapter as AppAdapter).submitList(bookmarksDTOList)
                 })
             }
