@@ -74,7 +74,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.extensions)
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.recyclerview)
     implementation(libs.okhttp)
     implementation(libs.rssparser)
     implementation(libs.coil.compose)

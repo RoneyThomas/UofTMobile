@@ -72,29 +72,6 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
         }
     }
 
-    fun setEditMode(isEditMode: Boolean) {
-        showRemoveIcon.value = isEditMode
-        Log.d("AppViewModel setEditMode 1", "setEditMode: $updateList")
-        Log.d("AppViewModel setEditMode 1", "setEditMode: ${bookmarksDTOList.value}")
-//        if (isEditMode) {
-//            updateList = bookmarksDTOList.value!!.toMutableList()
-//        }
-        bookmarksDTOList.value = updateList.map { item ->
-            if (jsonResponse.value?.mandatoryApps?.contains(item.id) == false) {
-                item.copy(showRemoveIcon = isEditMode)
-            } else {
-                item
-            }
-        }.toList()
-        if (!isEditMode) {
-            Log.d("AppViewModel setEditMode", "setEditMode: $updateList")
-            Log.d("AppViewModel setEditMode", "setEditMode: ${bookmarksDTOList.value}")
-            savePreference()
-        }
-        Log.d("AppViewModel setEditMode 2", "setEditMode: $updateList")
-        Log.d("AppViewModel setEditMode 2", "setEditMode: ${bookmarksDTOList.value}")
-    }
-
     fun getBookMarks(): LiveData<List<BookmarkDTO>> {
         return bookmarksDTOList
     }
@@ -134,7 +111,6 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
                                 it.name,
                                 it.url,
                                 it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
-                                false
                             )
                         }?.toMutableList() ?: mutableListOf()
                     bookmarksDTOList.postValue(updateList)
@@ -156,7 +132,6 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
                 it.name,
                 it.url,
                 it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
-                false
             )
         }?.toMutableList() ?: mutableListOf()
         bookmarksDTOList.value = updateList
@@ -196,14 +171,13 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
             if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
                 updateList = bookmarksDTOList.value!!.toMutableList()
                 val bookmarkDTO = jsonResponse.value?.apps?.filter { it.id == id }?.map {
-                        BookmarkDTO(
-                            it.id,
-                            it.name,
-                            it.url,
-                            it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
-                            false
-                        )
-                    }?.first()
+                    BookmarkDTO(
+                        it.id,
+                        it.name,
+                        it.url,
+                        it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
+                    )
+                }?.first()
                 if (bookmarkDTO != null) {
                     updateList.add(bookmarkDTO)
                     bookmarksDTOList.value = updateList.toList()
@@ -241,11 +215,11 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
     fun swapBookmark(i1: Int, i2: Int) {
         Log.d("AppViewModel", "i1: $i1, i2: $i2")
         Log.d("AppViewModel swapBookmark", updateList.toString())
+        updateList = bookmarksDTOList.value?.toMutableList() ?: mutableListOf()
         updateList.add(i2, updateList.removeAt(i1))
         Log.d("AppViewModel swapBookmark", updateList.toString())
-//        if (i1 < updateList.size && i2 < updateList.size) {
-//
-//        }
+        bookmarksDTOList.value = updateList
+        savePreference()
     }
 
     fun hideBookmarkInstructions() {

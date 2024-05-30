@@ -14,10 +14,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import ca.utoronto.megaapp.ui.screens.settingsScreen.SettingsPage
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.screens.homeScreen.HomeScreen
 import ca.utoronto.megaapp.ui.screens.rssFeed.RssScreen
+import ca.utoronto.megaapp.ui.screens.settingsScreen.SettingsPage
 import ca.utoronto.megaapp.ui.theme.UofTMobileTheme
 
 

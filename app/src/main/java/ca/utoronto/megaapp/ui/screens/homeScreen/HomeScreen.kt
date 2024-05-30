@@ -1,15 +1,21 @@
 package ca.utoronto.megaapp.ui.screens.homeScreen
 
 import android.app.Activity
+import android.net.Uri
 import android.util.Log
-import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.Toast
-import androidx.appcompat.widget.ListPopupWindow.MATCH_PARENT
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +30,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -45,6 +57,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -54,27 +67,35 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.ui.unit.toOffset
+import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.zIndex
 import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.theme.extraLightBlue
@@ -82,6 +103,9 @@ import ca.utoronto.megaapp.ui.theme.lightBlue
 import ca.utoronto.megaapp.ui.theme.onSecondaryLight
 import ca.utoronto.megaapp.ui.theme.roundBookmarkBlue
 import coil.compose.AsyncImage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -101,13 +125,18 @@ fun HomeScreen(
     var addBookmarkSheet by remember { mutableStateOf(false) }
     val addBookmarkSheetState = rememberModalBottomSheetState()
     var overFlowMenuExpanded by remember { mutableStateOf(false) }
-    var showRemoveIcon = appViewModel.showRemoveIcon.observeAsState().value
+    var showRemoveIcon by remember { mutableStateOf(false) }
 
     val searchQuery = appViewModel.searchQuery.observeAsState().value
     val searchSections = appViewModel.filteredSections().observeAsState().value
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState().value
     val jsonResponse = appViewModel.jsonResponse.value
     val bookmarksDTOList = appViewModel.getBookMarks().observeAsState().value
+
+    val gridState = rememberLazyGridState()
+    val dragDropState = rememberGridDragDropState(gridState) { fromIndex, toIndex ->
+        appViewModel.swapBookmark(fromIndex, toIndex)
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -126,9 +155,9 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    if (showRemoveIcon == true) {
+                    if (showRemoveIcon) {
                         IconButton(onClick = {
-                            appViewModel.setEditMode(false)
+                            showRemoveIcon = false
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Done, contentDescription = "More"
@@ -138,7 +167,6 @@ fun HomeScreen(
                         IconButton(onClick = {
                             addBookmarkSheet = true
                             showRemoveIcon = false
-                            appViewModel.setEditMode(false)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Add, contentDescription = "More"
@@ -160,7 +188,7 @@ fun HomeScreen(
                             containerColor = MaterialTheme.colorScheme.surface
                         ) {
                             DropdownMenuItem(text = { Text("Edit") }, onClick = {
-                                appViewModel.setEditMode(!showRemoveIcon!!)
+                                showRemoveIcon = true
                                 Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show()
                                 overFlowMenuExpanded = false
                             })
@@ -193,28 +221,89 @@ fun HomeScreen(
                     containerColor = Color.White, //Card background color
                 )
             ) {
-                AndroidView(factory = {
-                    RecyclerView(context).apply {
-                        layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                        layoutManager = GridLayoutManager(context, 4)
-                        adapter = AppAdapter(
-                            onNavigateToRssScreen, appViewModel::removeBookmark, appViewModel
-                        ).also {
-                            it.submitList(
-                                bookmarksDTOList
-                            )
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    modifier = Modifier.dragContainer(dragDropState),
+                    state = gridState,
+//                contentPadding = PaddingValues(16.dp),
+//                verticalArrangement = Arrangement.spacedBy(16.dp),
+//                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(
+                        start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
+                    ),
+                ) {
+                    itemsIndexed(items = bookmarksDTOList?.toList() ?: emptyList(),
+                        key = { _, item -> item.id }) { index, item ->
+                        DraggableItem(dragDropState = dragDropState, index = index) { isDragging ->
+//                            val elevation by animateDpAsState(if (isDragging) 2.dp else 0.dp)
+//                            val app = appViewModel.getAppById(item)
+                            Surface(
+//                                shadowElevation = elevation,
+                                color = Color.Transparent
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.clickable {
+                                        // When Eng. is clicked we need to show Eng RSS feed
+                                        if (item.id == "newseng") {
+                                            onNavigateToRssScreen.invoke()
+                                        } else {
+                                            val url = item.url
+                                            val intent = CustomTabsIntent.Builder().build()
+                                            intent.launchUrl(context, Uri.parse(url))
+                                        }
+                                    }) {
+                                    Box(
+                                        Modifier
+                                            .padding(8.dp, 16.dp, 8.dp, 16.dp)
+                                            .size(52.dp)
+                                            .background(
+                                                roundBookmarkBlue, CircleShape
+                                            ),
+                                    ) {
+                                        AsyncImage(
+                                            model = context.resources.getIdentifier(
+                                                item.imageLocation, "drawable", context.packageName
+                                            ),
+                                            contentDescription = "University of Toronto Logo",
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier
+                                                .height(32.dp)
+                                                .align(Alignment.Center),
+                                        )
+
+                                        if (showRemoveIcon) {
+                                            IconButton(modifier = Modifier
+                                                .size(18.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.Red)
+                                                .align(
+                                                    Alignment.TopEnd
+                                                )
+                                                .size(8.dp), onClick = {
+                                                appViewModel.removeBookmark(item.id)
+                                            }
+
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Close,
+                                                    tint = Color.White,
+                                                    contentDescription = "Remove Bookmark",
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Text(
+                                        fontWeight = FontWeight.Medium,
+                                        text = item.name,
+                                        textAlign = TextAlign.Center,
+                                        color = Color.DarkGray,
+                                        softWrap = true
+                                    )
+                                }
+                            }
                         }
-                        this.setPadding(6, 0, 6, 24)
                     }
-                }, update = {
-                    if (showRemoveIcon == true) {
-                        itemTouchHelper.attachToRecyclerView(it)
-                    } else {
-                        itemTouchHelper.attachToRecyclerView(null)
-                    }
-                    Log.d("HomeScreen", bookmarksDTOList.toString())
-                    (it.adapter as AppAdapter).submitList(bookmarksDTOList)
-                })
+                }
             }
             if (showBookmarkInstructions == true) {
                 Card(
@@ -348,5 +437,169 @@ fun HomeScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun rememberGridDragDropState(
+    gridState: LazyGridState, onMove: (Int, Int) -> Unit
+): GridDragDropState {
+    val scope = rememberCoroutineScope()
+    val state = remember(gridState) {
+        GridDragDropState(
+            state = gridState, onMove = onMove, scope = scope
+        )
+    }
+    LaunchedEffect(state) {
+        while (true) {
+            val diff = state.scrollChannel.receive()
+            gridState.scrollBy(diff)
+        }
+    }
+    return state
+}
+
+class GridDragDropState internal constructor(
+    private val state: LazyGridState,
+    private val scope: CoroutineScope,
+    private val onMove: (Int, Int) -> Unit
+) {
+    var draggingItemIndex by mutableStateOf<Int?>(null)
+        private set
+
+    internal val scrollChannel = Channel<Float>()
+
+    private var draggingItemDraggedDelta by mutableStateOf(Offset.Zero)
+    private var draggingItemInitialOffset by mutableStateOf(Offset.Zero)
+    internal val draggingItemOffset: Offset
+        get() = draggingItemLayoutInfo?.let { item ->
+            draggingItemInitialOffset + draggingItemDraggedDelta - item.offset.toOffset()
+        } ?: Offset.Zero
+
+    private val draggingItemLayoutInfo: LazyGridItemInfo?
+        get() = state.layoutInfo.visibleItemsInfo.firstOrNull { it.index == draggingItemIndex }
+
+    internal var previousIndexOfDraggedItem by mutableStateOf<Int?>(null)
+        private set
+    internal var previousItemOffset = Animatable(Offset.Zero, Offset.VectorConverter)
+        private set
+
+    internal fun onDragStart(offset: Offset) {
+        state.layoutInfo.visibleItemsInfo.firstOrNull { item ->
+            offset.x.toInt() in item.offset.x..item.offsetEnd.x && offset.y.toInt() in item.offset.y..item.offsetEnd.y
+        }?.also {
+            draggingItemIndex = it.index
+            draggingItemInitialOffset = it.offset.toOffset()
+        }
+    }
+
+    internal fun onDragInterrupted() {
+        if (draggingItemIndex != null) {
+            previousIndexOfDraggedItem = draggingItemIndex
+            val startOffset = draggingItemOffset
+            scope.launch {
+                previousItemOffset.snapTo(startOffset)
+                previousItemOffset.animateTo(
+                    Offset.Zero, spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = Offset.VisibilityThreshold
+                    )
+                )
+                previousIndexOfDraggedItem = null
+            }
+        }
+        draggingItemDraggedDelta = Offset.Zero
+        draggingItemIndex = null
+        draggingItemInitialOffset = Offset.Zero
+    }
+
+    internal fun onDrag(offset: Offset) {
+        draggingItemDraggedDelta += offset
+
+        val draggingItem = draggingItemLayoutInfo ?: return
+        val startOffset = draggingItem.offset.toOffset() + draggingItemOffset
+        val endOffset = startOffset + draggingItem.size.toSize()
+        val middleOffset = startOffset + (endOffset - startOffset) / 2f
+
+        val targetItem = state.layoutInfo.visibleItemsInfo.find { item ->
+            middleOffset.x.toInt() in item.offset.x..item.offsetEnd.x && middleOffset.y.toInt() in item.offset.y..item.offsetEnd.y && draggingItem.index != item.index
+        }
+        if (targetItem != null) {
+            if (draggingItem.index == state.firstVisibleItemIndex || targetItem.index == state.firstVisibleItemIndex) {
+                state.requestScrollToItem(
+                    state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset
+                )
+            }
+            onMove.invoke(draggingItem.index, targetItem.index)
+            draggingItemIndex = targetItem.index
+        } else {
+            val overscroll = when {
+                draggingItemDraggedDelta.y > 0 -> (endOffset.y - state.layoutInfo.viewportEndOffset).coerceAtLeast(
+                    0f
+                )
+
+                draggingItemDraggedDelta.y < 0 -> (startOffset.y - state.layoutInfo.viewportStartOffset).coerceAtMost(
+                    0f
+                )
+
+                else -> 0f
+            }
+            if (overscroll != 0f) {
+                scrollChannel.trySend(overscroll)
+            }
+        }
+    }
+
+    private val LazyGridItemInfo.offsetEnd: IntOffset
+        get() = this.offset + this.size
+}
+
+private operator fun IntOffset.plus(size: IntSize): IntOffset {
+    return IntOffset(x + size.width, y + size.height)
+}
+
+private operator fun Offset.plus(size: Size): Offset {
+    return Offset(x + size.width, y + size.height)
+}
+
+fun Modifier.dragContainer(dragDropState: GridDragDropState): Modifier {
+    return pointerInput(dragDropState) {
+        detectDragGesturesAfterLongPress(onDrag = { change, offset ->
+            change.consume()
+            dragDropState.onDrag(offset = offset)
+        },
+            onDragStart = { offset -> dragDropState.onDragStart(offset) },
+            onDragEnd = { dragDropState.onDragInterrupted() },
+            onDragCancel = { dragDropState.onDragInterrupted() })
+    }
+}
+
+@Composable
+fun LazyGridItemScope.DraggableItem(
+    dragDropState: GridDragDropState,
+    index: Int,
+    modifier: Modifier = Modifier,
+    content: @Composable (isDragging: Boolean) -> Unit
+) {
+    val dragging = index == dragDropState.draggingItemIndex
+    val draggingModifier = if (dragging) {
+        Modifier
+            .zIndex(1f)
+            .graphicsLayer {
+                translationX = dragDropState.draggingItemOffset.x
+                translationY = dragDropState.draggingItemOffset.y
+            }
+    } else if (index == dragDropState.previousIndexOfDraggedItem) {
+        Modifier
+            .zIndex(1f)
+            .graphicsLayer {
+                translationX = dragDropState.previousItemOffset.value.x
+                translationY = dragDropState.previousItemOffset.value.y
+            }
+    } else {
+        Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+    }
+    Box(modifier = modifier.then(draggingModifier), propagateMinConstraints = true) {
+        content(dragging)
     }
 }
