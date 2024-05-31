@@ -110,7 +110,6 @@ import ca.utoronto.megaapp.ui.theme.lightBlue
 import ca.utoronto.megaapp.ui.theme.onSecondaryLight
 import ca.utoronto.megaapp.ui.theme.primaryLight
 import ca.utoronto.megaapp.ui.theme.roundBookmarkBlue
-import ca.utoronto.megaapp.ui.theme.scrimLight
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
