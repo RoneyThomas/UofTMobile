@@ -155,7 +155,7 @@ class AppViewModel(private val application: Application) :
 
     private fun resetToMandatoryApps() {
         updateList = jsonResponse.value?.apps?.filter {
-            jsonResponse.value?.mandatoryApps?.contains(it.id) ?: false
+            isMandatory(it.id) ?: false
         }?.map {
             BookmarkDTO(
                 it.id,
@@ -199,7 +199,7 @@ class AppViewModel(private val application: Application) :
     }
 
     fun addBookmark(id: String) {
-        if (jsonResponse.value?.mandatoryApps?.contains(id) != true) {
+        if (!isMandatory(id)) {
             if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
                 updateList = bookmarksDTOList.value!!.toMutableList()
                 val bookmarkDTO = jsonResponse.value?.apps?.filter { it.id == id }?.map {
@@ -289,5 +289,9 @@ class AppViewModel(private val application: Application) :
             }
         }
         return rssFeed
+    }
+
+    fun isMandatory(id: String): Boolean {
+        return jsonResponse.value?.mandatoryApps?.contains(id) ?: false
     }
 }
