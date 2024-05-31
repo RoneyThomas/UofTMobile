@@ -5,12 +5,15 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -108,7 +111,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
 )
 @Composable
 fun HomeScreen(
@@ -155,23 +158,27 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    if (editMode == true) {
-                        IconButton(onClick = {
-                            appViewModel.setEditMode(false)
+                    Crossfade(targetState = editMode, label = "editIconCrossFade") { editMode ->
+                        // note that it's required to use the value passed by Crossfade
+                        // instead of your state value
+                        if (editMode == true) {
+                            IconButton(onClick = {
+                                appViewModel.setEditMode(false)
 
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Done, contentDescription = "More"
-                            )
-                        }
-                    } else {
-                        IconButton(onClick = {
-                            addBookmarkSheet = true
-                            appViewModel.setEditMode(false)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Add, contentDescription = "More"
-                            )
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Done, contentDescription = "More"
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = {
+                                addBookmarkSheet = true
+                                appViewModel.setEditMode(false)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Add, contentDescription = "More"
+                                )
+                            }
                         }
                     }
                     Box(
@@ -190,7 +197,11 @@ fun HomeScreen(
                         ) {
                             DropdownMenuItem(text = { Text("Edit") }, onClick = {
                                 appViewModel.setEditMode(true)
-                                Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Drag and drop to rearrange bookmarks",
+                                    Toast.LENGTH_LONG
+                                ).show()
                                 overFlowMenuExpanded = false
                             })
                             DropdownMenuItem(text = { Text("Setting") }, onClick = {
@@ -235,24 +246,29 @@ fun HomeScreen(
                 ) {
                     itemsIndexed(items = bookmarksDTOList?.toList() ?: emptyList(),
                         key = { _, item -> item.id }) { index, item ->
-                        DraggableItem(dragDropState = dragDropState, index = index) { isDragging ->
-//                            val elevation by animateDpAsState(if (isDragging) 2.dp else 0.dp)
-//                            val app = appViewModel.getAppById(item)
+                        DraggableItem(
+                            dragDropState = dragDropState,
+                            index = index,
+//                            modifier = Modifier.animateItem()
+                        ) { isDragging ->
+                            val elevation by animateDpAsState(if (isDragging) 2.dp else 0.dp)
                             Surface(
-//                                shadowElevation = elevation,
-                                color = Color.Transparent
+                                shadowElevation = elevation,
+                                color = Color.White,
+                                shape = RoundedCornerShape(8.dp)
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.clickable {
-                                        // When Eng. is clicked we need to show Eng RSS feed
-                                        if (item.id == "newseng") {
-                                            onNavigateToRssScreen.invoke()
-                                        } else {
-                                            val url = item.url
-                                            val intent = CustomTabsIntent.Builder().build()
-                                            intent.launchUrl(context, Uri.parse(url))
-                                        }
-                                    }) {
+                                    modifier = Modifier
+                                        .clickable {
+                                            // When Eng. is clicked we need to show Eng RSS feed
+                                            if (item.id == "newseng") {
+                                                onNavigateToRssScreen.invoke()
+                                            } else {
+                                                val url = item.url
+                                                val intent = CustomTabsIntent.Builder().build()
+                                                intent.launchUrl(context, Uri.parse(url))
+                                            }
+                                        }) {
                                     Box(
                                         Modifier
                                             .padding(8.dp, 16.dp, 8.dp, 16.dp)

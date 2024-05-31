@@ -23,9 +23,9 @@ import ca.utoronto.megaapp.ui.SectionsDTO
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.prof18.rssparser.model.RssChannel
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import okhttp3.Cache
@@ -58,7 +58,6 @@ class AppViewModel(private val application: Application) :
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
 
     private var bookmarksDTOList = MutableLiveData<List<BookmarkDTO>>()
-    var showRemoveIcon = MutableLiveData(false)
 
     var searchQuery = MutableLiveData("")
     private var refresh = MutableLiveData(false)
@@ -125,29 +124,35 @@ class AppViewModel(private val application: Application) :
                     preferences[stringPreferencesKey("bookmark")] ?: ""
                 }
                 viewModelScope.launch {
-                    val bookmarks = bookmarksFlow.first()
-                    Log.d("Flow", bookmarks)
-                    if (bookmarks.isNotEmpty() && bookmarksDTOList.value != null) {
-                        val bookmarkList = bookmarks.split(",").toList()
-                        bookmarkList.forEach { id ->
-                            val app = jsonResponse.value?.apps?.first { it.id == id }
-                            if (app != null) {
-                                updateList.add(
-                                    BookmarkDTO(
-                                        app.id,
-                                        app.name,
-                                        app.url,
-                                        app.imageURL.ifEmpty { app.imageLocalName.lowercase(Locale.getDefault()) },
+                    bookmarksFlow.collect {
+                        Log.d("Flow before it", it)
+                        if (it.isNotEmpty()) {
+                            Log.d("Flow inside", it)
+                            val bookmarkList = it.split(",").toList()
+                            bookmarkList.forEach { id ->
+                                val app = jsonResponse.value?.apps?.first { it.id == id }
+                                if (app != null) {
+                                    updateList.add(
+                                        BookmarkDTO(
+                                            app.id,
+                                            app.name,
+                                            app.url,
+                                            app.imageURL.ifEmpty {
+                                                app.imageLocalName.lowercase(
+                                                    Locale.getDefault()
+                                                )
+                                            },
+                                        )
                                     )
-                                )
+                                }
                             }
+                            bookmarksDTOList.postValue(updateList)
+                        } else {
+                            resetToMandatoryApps()
                         }
-                        bookmarksDTOList.postValue(updateList)
-                    } else {
-                        resetToMandatoryApps()
+                        this.cancel()
                     }
                 }
-
             }
             return@switchMap MutableLiveData(sectionsDTOList)
         }
