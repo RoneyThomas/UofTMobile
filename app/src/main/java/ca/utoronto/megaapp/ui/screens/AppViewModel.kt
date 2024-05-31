@@ -85,7 +85,7 @@ class AppViewModel(private val application: Application) :
         return bookmarksDTOList
     }
 
-    // Creates DTO from jsonResponse
+    // Creates Sections DTO from jsonResponse, used in the bottom sheet, where we need to show section along with its apps
     private fun sections(): LiveData<Map<String, SectionsDTO>> = jsonResponse.switchMap {
         run {
             val sectionsDTOList: MutableMap<String, SectionsDTO> =
@@ -108,7 +108,7 @@ class AppViewModel(private val application: Application) :
                 }
             }
 
-            // Loads bookmark
+            // Loads bookmark, gets the users app keys from datastore and maps it jsonResponse to create book dto list
             if (bookmarksDTOList.value == null) {
                 val bookmarksFlow: Flow<String> = dataStore.data.map { preferences ->
                     preferences[stringPreferencesKey("bookmark")] ?: ""
@@ -167,6 +167,7 @@ class AppViewModel(private val application: Application) :
         }
     }
 
+    // Used for search in bottom sheet, will create apps that match the searchQuery
     fun filteredSections(): LiveData<Map<String, SectionsDTO>> = searchQuery.switchMap { query ->
         val sectionsDTOList: MutableMap<String, SectionsDTO> =
             emptyMap<String, SectionsDTO>().toMutableMap()

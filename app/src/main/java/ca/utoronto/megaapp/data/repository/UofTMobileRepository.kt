@@ -14,11 +14,12 @@ import okio.IOException
 import java.net.ConnectException
 import java.net.UnknownHostException
 
-
+// Repository responsible for getting json data from s3
 class UofTMobileRepository(val context: Context, private val client: OkHttpClient) {
 
     private val tag: String = "SitesRepository"
 
+    // Could change it to StateFlow, but that is for another day
     var result: MutableLiveData<UofTMobile> = MutableLiveData<UofTMobile>()
 
     private val request: Request = Request.Builder()

@@ -12018,7 +12018,6 @@ HSPLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->setDirty(Z)V
 HSPLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->triggerRepaint()V
 HSPLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateDisplayList()V
 HSPLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateLayerProperties(Landroidx/compose/ui/graphics/ReusableGraphicsLayerScope;)V
-HPLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateMatrix()V
 HSPLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer;->updateOutline()V
 Landroidx/compose/ui/platform/GraphicsLayerOwnerLayer$updateDisplayList$1;
 HSPLandroidx/compose/ui/platform/GraphicsLayerOwnerLayer$updateDisplayList$1;-><init>(Landroidx/compose/ui/platform/GraphicsLayerOwnerLayer;)V
@@ -15663,7 +15662,7 @@ HSPLandroidx/emoji2/text/MetadataListReader$OffsetInfo;->getStartOffset()J
 Landroidx/emoji2/text/MetadataListReader$OpenTypeReader;
 Landroidx/emoji2/text/MetadataRepo;
 HSPLandroidx/emoji2/text/MetadataRepo;-><init>(Landroid/graphics/Typeface;Landroidx/emoji2/text/flatbuffer/MetadataList;)V
-HSPLandroidx/emoji2/text/MetadataRepo;->constructIndex(Landroidx/emoji2/text/flatbuffer/MetadataList;)V
+HPLandroidx/emoji2/text/MetadataRepo;->constructIndex(Landroidx/emoji2/text/flatbuffer/MetadataList;)V
 HSPLandroidx/emoji2/text/MetadataRepo;->create(Landroid/graphics/Typeface;Ljava/nio/ByteBuffer;)Landroidx/emoji2/text/MetadataRepo;
 HPLandroidx/emoji2/text/MetadataRepo;->getMetadataList()Landroidx/emoji2/text/flatbuffer/MetadataList;
 HSPLandroidx/emoji2/text/MetadataRepo;->getRootNode()Landroidx/emoji2/text/MetadataRepo$Node;
@@ -15680,12 +15679,9 @@ HSPLandroidx/emoji2/text/TypefaceEmojiRasterizer;-><init>(Landroidx/emoji2/text/
 HSPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getCodepointAt(I)I
 HSPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getCodepointsLength()I
 HSPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getId()I
-HSPLandroidx/emoji2/text/TypefaceEmojiRasterizer;->getMetadataItem()Landroidx/emoji2/text/flatbuffer/MetadataItem;
 Landroidx/emoji2/text/UnprecomputeTextOnModificationSpannable;
 Landroidx/emoji2/text/flatbuffer/MetadataItem;
 HSPLandroidx/emoji2/text/flatbuffer/MetadataItem;-><init>()V
-HSPLandroidx/emoji2/text/flatbuffer/MetadataItem;->__assign(ILjava/nio/ByteBuffer;)Landroidx/emoji2/text/flatbuffer/MetadataItem;
-HSPLandroidx/emoji2/text/flatbuffer/MetadataItem;->__init(ILjava/nio/ByteBuffer;)V
 HSPLandroidx/emoji2/text/flatbuffer/MetadataItem;->codepoints(I)I
 HSPLandroidx/emoji2/text/flatbuffer/MetadataItem;->codepointsLength()I
 HSPLandroidx/emoji2/text/flatbuffer/MetadataItem;->id()I
@@ -19470,7 +19466,6 @@ HSPLkotlinx/coroutines/channels/BufferedChannel;->getSendSegment$volatile$FU()Lj
 HSPLkotlinx/coroutines/channels/BufferedChannel;->getSendersAndCloseStatus$volatile$FU()Ljava/util/concurrent/atomic/AtomicLongFieldUpdater;
 HSPLkotlinx/coroutines/channels/BufferedChannel;->getSendersCounter$kotlinx_coroutines_core()J
 HSPLkotlinx/coroutines/channels/BufferedChannel;->get_closeCause$volatile$FU()Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;
-HSPLkotlinx/coroutines/channels/BufferedChannel;->hasElements$kotlinx_coroutines_core()Z
 HSPLkotlinx/coroutines/channels/BufferedChannel;->incCompletedExpandBufferAttempts$default(Lkotlinx/coroutines/channels/BufferedChannel;JILjava/lang/Object;)V
 HSPLkotlinx/coroutines/channels/BufferedChannel;->incCompletedExpandBufferAttempts(J)V
 HSPLkotlinx/coroutines/channels/BufferedChannel;->invokeCloseHandler()V
@@ -19873,6 +19868,8 @@ Lkotlinx/coroutines/flow/StartedLazily;
 HSPLkotlinx/coroutines/flow/StartedLazily;-><init>()V
 Lkotlinx/coroutines/flow/StartedWhileSubscribed;
 HSPLkotlinx/coroutines/flow/StartedWhileSubscribed;-><init>(JJ)V
+HSPLkotlinx/coroutines/flow/StartedWhileSubscribed;->access$getReplayExpiration$p(Lkotlinx/coroutines/flow/StartedWhileSubscribed;)J
+HSPLkotlinx/coroutines/flow/StartedWhileSubscribed;->access$getStopTimeout$p(Lkotlinx/coroutines/flow/StartedWhileSubscribed;)J
 HSPLkotlinx/coroutines/flow/StartedWhileSubscribed;->command(Lkotlinx/coroutines/flow/StateFlow;)Lkotlinx/coroutines/flow/Flow;
 HSPLkotlinx/coroutines/flow/StartedWhileSubscribed;->equals(Ljava/lang/Object;)Z
 Lkotlinx/coroutines/flow/StartedWhileSubscribed$command$1;
@@ -20075,7 +20072,6 @@ Lkotlinx/coroutines/internal/DispatchedContinuation;
 HSPLkotlinx/coroutines/internal/DispatchedContinuation;-><clinit>()V
 HSPLkotlinx/coroutines/internal/DispatchedContinuation;-><init>(Lkotlinx/coroutines/CoroutineDispatcher;Lkotlin/coroutines/Continuation;)V
 HSPLkotlinx/coroutines/internal/DispatchedContinuation;->awaitReusability$kotlinx_coroutines_core()V
-HSPLkotlinx/coroutines/internal/DispatchedContinuation;->cancelCompletedResult$kotlinx_coroutines_core(Ljava/lang/Object;Ljava/lang/Throwable;)V
 HSPLkotlinx/coroutines/internal/DispatchedContinuation;->claimReusableCancellableContinuation$kotlinx_coroutines_core()Lkotlinx/coroutines/CancellableContinuationImpl;
 HSPLkotlinx/coroutines/internal/DispatchedContinuation;->getContext()Lkotlin/coroutines/CoroutineContext;
 HSPLkotlinx/coroutines/internal/DispatchedContinuation;->getDelegate$kotlinx_coroutines_core()Lkotlin/coroutines/Continuation;
@@ -21728,6 +21724,7 @@ HSPLokio/AsyncTimeout;-><init>()V
 HSPLokio/AsyncTimeout;->access$getCompanion$p()Lokio/AsyncTimeout$Companion;
 HSPLokio/AsyncTimeout;->access$getCondition$cp()Ljava/util/concurrent/locks/Condition;
 HSPLokio/AsyncTimeout;->access$getHead$cp()Lokio/AsyncTimeout;
+HSPLokio/AsyncTimeout;->access$getIDLE_TIMEOUT_MILLIS$cp()J
 HSPLokio/AsyncTimeout;->access$getLock$cp()Ljava/util/concurrent/locks/ReentrantLock;
 HSPLokio/AsyncTimeout;->access$getNext$p(Lokio/AsyncTimeout;)Lokio/AsyncTimeout;
 HSPLokio/AsyncTimeout;->access$remainingNanos(Lokio/AsyncTimeout;J)J
