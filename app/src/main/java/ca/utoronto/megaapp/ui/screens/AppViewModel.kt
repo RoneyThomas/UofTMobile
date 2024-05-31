@@ -128,25 +128,27 @@ class AppViewModel(private val application: Application) :
                         Log.d("Flow before it", it)
                         if (it.isNotEmpty()) {
                             Log.d("Flow inside", it)
-                            val bookmarkList = it.split(",").toList()
-                            bookmarkList.forEach { id ->
-                                val app = jsonResponse.value?.apps?.first { it.id == id }
-                                if (app != null) {
-                                    updateList.add(
-                                        BookmarkDTO(
-                                            app.id,
-                                            app.name,
-                                            app.url,
-                                            app.imageURL.ifEmpty {
-                                                app.imageLocalName.lowercase(
-                                                    Locale.getDefault()
-                                                )
-                                            },
+                            if (updateList.isEmpty()) {
+                                val bookmarkList = it.split(",").toList()
+                                bookmarkList.forEach { id ->
+                                    val app = jsonResponse.value?.apps?.first { it.id == id }
+                                    if (app != null) {
+                                        updateList.add(
+                                            BookmarkDTO(
+                                                app.id,
+                                                app.name,
+                                                app.url,
+                                                app.imageURL.ifEmpty {
+                                                    app.imageLocalName.lowercase(
+                                                        Locale.getDefault()
+                                                    )
+                                                },
+                                            )
                                         )
-                                    )
+                                    }
                                 }
+                                bookmarksDTOList.postValue(updateList)
                             }
-                            bookmarksDTOList.postValue(updateList)
                         } else {
                             resetToMandatoryApps()
                         }
