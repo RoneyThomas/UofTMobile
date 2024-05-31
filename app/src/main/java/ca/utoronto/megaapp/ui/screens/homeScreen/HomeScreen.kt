@@ -125,8 +125,8 @@ fun HomeScreen(
     var addBookmarkSheet by remember { mutableStateOf(false) }
     val addBookmarkSheetState = rememberModalBottomSheetState()
     var overFlowMenuExpanded by remember { mutableStateOf(false) }
-    var showRemoveIcon by remember { mutableStateOf(false) }
 
+    val editMode = appViewModel.editMode.observeAsState().value
     val searchQuery = appViewModel.searchQuery.observeAsState().value
     val searchSections = appViewModel.filteredSections().observeAsState().value
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState().value
@@ -155,9 +155,10 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    if (showRemoveIcon) {
+                    if (editMode == true) {
                         IconButton(onClick = {
-                            showRemoveIcon = false
+                            appViewModel.setEditMode(false)
+
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Done, contentDescription = "More"
@@ -166,7 +167,7 @@ fun HomeScreen(
                     } else {
                         IconButton(onClick = {
                             addBookmarkSheet = true
-                            showRemoveIcon = false
+                            appViewModel.setEditMode(false)
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Add, contentDescription = "More"
@@ -188,7 +189,7 @@ fun HomeScreen(
                             containerColor = MaterialTheme.colorScheme.surface
                         ) {
                             DropdownMenuItem(text = { Text("Edit") }, onClick = {
-                                showRemoveIcon = true
+                                appViewModel.setEditMode(true)
                                 Toast.makeText(context, "Edit", Toast.LENGTH_SHORT).show()
                                 overFlowMenuExpanded = false
                             })
@@ -271,7 +272,7 @@ fun HomeScreen(
                                                 .align(Alignment.Center),
                                         )
 
-                                        if (showRemoveIcon) {
+                                        if (editMode == true) {
                                             IconButton(modifier = Modifier
                                                 .size(18.dp)
                                                 .clip(CircleShape)

@@ -51,10 +51,9 @@ class AppViewModel(private val application: Application) :
     private val dataStore = application.applicationContext.dataStore
     private val bookmarkDataStoreKey = stringPreferencesKey("bookmark")
     private val firstLaunchStoreKey = booleanPreferencesKey("firstLaunch")
-//    private val sharedPreferences: SharedPreferences =
-//        PreferenceManager.getDefaultSharedPreferences(getApplication())
 
     val showBookmarkInstructions = MutableLiveData(false)
+    val editMode = MutableLiveData(false)
 
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
 
@@ -128,17 +127,21 @@ class AppViewModel(private val application: Application) :
                 viewModelScope.launch {
                     val bookmarks = bookmarksFlow.first()
                     Log.d("Flow", bookmarks)
-                    if (bookmarks.isNotEmpty()) {
+                    if (bookmarks.isNotEmpty() && bookmarksDTOList.value != null) {
                         val bookmarkList = bookmarks.split(",").toList()
-                        updateList =
-                            jsonResponse.value?.apps?.filter { bookmarkList.contains(it.id) }?.map {
-                                BookmarkDTO(
-                                    it.id,
-                                    it.name,
-                                    it.url,
-                                    it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
+                        bookmarkList.forEach { id ->
+                            val app = jsonResponse.value?.apps?.first { it.id == id }
+                            if (app != null) {
+                                updateList.add(
+                                    BookmarkDTO(
+                                        app.id,
+                                        app.name,
+                                        app.url,
+                                        app.imageURL.ifEmpty { app.imageLocalName.lowercase(Locale.getDefault()) },
+                                    )
                                 )
-                            }?.toMutableList() ?: mutableListOf()
+                            }
+                        }
                         bookmarksDTOList.postValue(updateList)
                     } else {
                         resetToMandatoryApps()
@@ -225,6 +228,7 @@ class AppViewModel(private val application: Application) :
             preferences[bookmarkDataStoreKey] =
                 bookmarksDTOList.value?.joinToString(separator = ",") { it.id }.toString()
         }
+        Log.d("AppViewModel swapBookmark", bookmarksDTOList.toString())
     }
 
     @OptIn(ExperimentalCoilApi::class)
@@ -250,6 +254,15 @@ class AppViewModel(private val application: Application) :
         }
     }
 
+    fun setEditMode(isEdit: Boolean) {
+        if (!isEdit) {
+            viewModelScope.launch {
+                savePreference()
+            }
+        }
+        editMode.value = isEdit
+    }
+
     fun swapBookmark(i1: Int, i2: Int) {
         Log.d("AppViewModel", "i1: $i1, i2: $i2")
         Log.d("AppViewModel swapBookmark", updateList.toString())
@@ -257,9 +270,6 @@ class AppViewModel(private val application: Application) :
         updateList.add(i2, updateList.removeAt(i1))
         Log.d("AppViewModel swapBookmark", updateList.toString())
         bookmarksDTOList.value = updateList
-        viewModelScope.launch {
-            savePreference()
-        }
     }
 
     fun hideBookmarkInstructions() {
