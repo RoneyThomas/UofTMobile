@@ -21,6 +21,7 @@ class MegaAppApplication : Application(), ImageLoaderFactory {
                     .maxSizeBytes(15 * 1024 * 1024)
                     .build()
             }
+            // Logger for koil imageloader
 //            .logger(DebugLogger())
             .respectCacheHeaders(true)
             .build()

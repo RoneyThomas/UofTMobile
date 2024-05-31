@@ -60,7 +60,7 @@ fun UofTMobileNavHost(
             UofTMobileTheme { RssScreen(appViewModel, navController) }
         }
         composable("settings") {
-            UofTMobileTheme { SettingsPage(appViewModel, navController).AboutPageMain() }
+            UofTMobileTheme { SettingsPage(appViewModel, navController) }
         }
     }
 }
