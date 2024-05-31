@@ -24,7 +24,6 @@ import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.prof18.rssparser.model.RssChannel
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -33,6 +32,7 @@ import okhttp3.OkHttpClient
 import java.io.File
 import java.util.Locale
 
+// For Jetpack DataStore
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "UofTAppDataStore")
 
 class AppViewModel(private val application: Application) :
@@ -48,21 +48,17 @@ class AppViewModel(private val application: Application) :
 
     private val uofTMobileRepository: UofTMobileRepository =
         UofTMobileRepository(application, client)
+
     private val dataStore = application.applicationContext.dataStore
     private val bookmarkDataStoreKey = stringPreferencesKey("bookmark")
     private val firstLaunchStoreKey = booleanPreferencesKey("firstLaunch")
 
     val showBookmarkInstructions = MutableLiveData(false)
     val editMode = MutableLiveData(false)
-
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
-
     private var bookmarksDTOList = MutableLiveData<List<BookmarkDTO>>()
-
     var searchQuery = MutableLiveData("")
-    private var refresh = MutableLiveData(false)
     private var updateList: MutableList<BookmarkDTO> = mutableListOf()
-
     private lateinit var rssFeed: LiveData<RssChannel>
 
     init {
@@ -75,20 +71,14 @@ class AppViewModel(private val application: Application) :
             preferences[booleanPreferencesKey("firstLaunch")] ?: true
         }
         viewModelScope.launch {
-            val firstTime = bookmarksFlow.collect {
+            bookmarksFlow.collect {
                 showBookmarkInstructions.value = it
             }
         }
-        // get value from flow
     }
 
     fun refresh() {
-        refresh.value = true
         loadApps()
-        viewModelScope.launch {
-            delay(400)
-            refresh.value = false
-        }
     }
 
     fun getBookMarks(): LiveData<List<BookmarkDTO>> {
@@ -162,7 +152,7 @@ class AppViewModel(private val application: Application) :
 
     private fun resetToMandatoryApps() {
         updateList = jsonResponse.value?.apps?.filter {
-            isMandatory(it.id) ?: false
+            isMandatory(it.id)
         }?.map {
             BookmarkDTO(
                 it.id,
@@ -206,6 +196,7 @@ class AppViewModel(private val application: Application) :
     }
 
     fun addBookmark(id: String) {
+        // Only non-mandatory apps can be added
         if (!isMandatory(id)) {
             if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
                 updateList = bookmarksDTOList.value!!.toMutableList()
@@ -235,19 +226,22 @@ class AppViewModel(private val application: Application) :
             preferences[bookmarkDataStoreKey] =
                 bookmarksDTOList.value?.joinToString(separator = ",") { it.id }.toString()
         }
-        Log.d("AppViewModel swapBookmark", bookmarksDTOList.toString())
+        Log.d("AppViewModel savePreference", bookmarksDTOList.toString())
     }
 
     @OptIn(ExperimentalCoilApi::class)
     fun resetBookmarks() {
         resetToMandatoryApps()
+        // Reset OkHTTP Cache
         client.cache?.evictAll()
+        // Reset Koil cache
         application.imageLoader.diskCache?.clear()
         application.imageLoader.memoryCache?.clear()
         showBookmarkInstructions.value = true
+        // Reset preferences
         viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[firstLaunchStoreKey] = true
+            dataStore.edit {
+                it.clear()
             }
         }
     }
@@ -262,6 +256,7 @@ class AppViewModel(private val application: Application) :
     }
 
     fun setEditMode(isEdit: Boolean) {
+        // When done editing, save bookmarks to datastore
         if (!isEdit) {
             viewModelScope.launch {
                 savePreference()
@@ -288,6 +283,10 @@ class AppViewModel(private val application: Application) :
         }
     }
 
+    fun isMandatory(id: String): Boolean {
+        return jsonResponse.value?.mandatoryApps?.contains(id) ?: false
+    }
+
     fun getRssFeed(): LiveData<RssChannel> {
         rssFeed = liveData {
             val data = EngRSSRepository(client).rssChannel()
@@ -296,9 +295,5 @@ class AppViewModel(private val application: Application) :
             }
         }
         return rssFeed
-    }
-
-    fun isMandatory(id: String): Boolean {
-        return jsonResponse.value?.mandatoryApps?.contains(id) ?: false
     }
 }

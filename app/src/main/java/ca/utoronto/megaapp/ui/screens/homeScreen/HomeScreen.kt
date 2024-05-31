@@ -78,6 +78,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -91,6 +92,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
@@ -112,6 +116,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalComposeUiApi::class,
 )
 @Composable
 fun HomeScreen(
@@ -142,7 +147,13 @@ fun HomeScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            // For UiAutomator
+            // https://medium.com/androiddevelopers/accessing-composables-from-uiautomator-cf316515edc2
+            .semantics {
+                testTagsAsResourceId = true
+            },
         topBar = {
             TopAppBar(
                 colors = topAppBarColors(
@@ -167,16 +178,17 @@ fun HomeScreen(
 
                             }) {
                                 Icon(
-                                    imageVector = Icons.Default.Done, contentDescription = "More"
+                                    imageVector = Icons.Default.Done,
+                                    contentDescription = "Done Editing"
                                 )
                             }
                         } else {
                             IconButton(onClick = {
                                 addBookmarkSheet = true
                                 appViewModel.setEditMode(false)
-                            }) {
+                            }, modifier = Modifier.testTag("AddButton")) {
                                 Icon(
-                                    imageVector = Icons.Default.Add, contentDescription = "More"
+                                    imageVector = Icons.Default.Add, contentDescription = "Add"
                                 )
                             }
                         }
@@ -193,21 +205,26 @@ fun HomeScreen(
                         DropdownMenu(
                             expanded = overFlowMenuExpanded,
                             onDismissRequest = { overFlowMenuExpanded = false },
-                            containerColor = MaterialTheme.colorScheme.surface
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            modifier = Modifier.testTag("overFlowMenu")
                         ) {
-                            DropdownMenuItem(text = { Text("Edit") }, onClick = {
-                                appViewModel.setEditMode(true)
-                                Toast.makeText(
-                                    context,
-                                    "Drag and drop to rearrange bookmarks",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                overFlowMenuExpanded = false
-                            })
-                            DropdownMenuItem(text = { Text("Setting") }, onClick = {
-                                onNavigateToSettingsScreen()
-                                overFlowMenuExpanded = false
-                            })
+                            DropdownMenuItem(text = { Text("Edit") },
+                                modifier = Modifier.testTag("editMenu"),
+                                onClick = {
+                                    appViewModel.setEditMode(true)
+                                    Toast.makeText(
+                                        context,
+                                        "Drag and drop to rearrange bookmarks",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    overFlowMenuExpanded = false
+                                })
+                            DropdownMenuItem(text = { Text("Setting") },
+                                modifier = Modifier.testTag("settingMenu"),
+                                onClick = {
+                                    onNavigateToSettingsScreen()
+                                    overFlowMenuExpanded = false
+                                })
                         }
                     }
                 },
@@ -235,11 +252,10 @@ fun HomeScreen(
             ) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(4),
-                    modifier = Modifier.dragContainer(dragDropState),
+                    modifier = Modifier
+                        .dragContainer(dragDropState)
+                        .testTag("BookmarkList"),
                     state = gridState,
-//                contentPadding = PaddingValues(16.dp),
-//                verticalArrangement = Arrangement.spacedBy(16.dp),
-//                horizontalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(
                         start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                     ),
@@ -338,6 +354,7 @@ fun HomeScreen(
                         Row {
                             Spacer(Modifier.weight(1.0f))
                             Button(
+                                modifier = Modifier.testTag("Startup Instructions Dismiss Button"),
                                 onClick = { appViewModel.hideBookmarkInstructions() },
                                 colors = ButtonDefaults.buttonColors(containerColor = roundBookmarkBlue)
                             ) {
@@ -373,7 +390,8 @@ fun HomeScreen(
                                                 color = MaterialTheme.colorScheme.primary
                                             ), shape = RoundedCornerShape(50)
                                         )
-                                        .padding(8.dp, 0.dp),
+                                        .padding(8.dp, 0.dp)
+                                        .testTag("SearchField"),
                                     placeholder = { Text("Search") },
                                     colors = TextFieldDefaults.colors(
                                         focusedIndicatorColor = Color.Transparent,
@@ -388,67 +406,68 @@ fun HomeScreen(
                                         )
                                     })
                             }
-                            LazyVerticalGrid(GridCells.Fixed(4), contentPadding = PaddingValues(
-                                start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
-                            ), content = {
-                                searchSections?.forEach { (key, value) ->
-                                    run {
-                                        item(span = { GridItemSpan(maxLineSpan) }, key = key) {
+                            LazyVerticalGrid(GridCells.Fixed(4),
+                                contentPadding = PaddingValues(
+                                    start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
+                                ), content = {
+                                    searchSections?.forEach { (key, value) ->
+                                        run {
+                                            item(span = { GridItemSpan(maxLineSpan) }, key = key) {
 
-                                            Text(
-                                                text = key,
-                                                modifier = Modifier.padding(vertical = 12.dp),
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.secondaryContainer
-                                            )
-                                        }
-                                        items(value.apps.toList(), key = { it }) { item ->
-                                            Column(verticalArrangement = Arrangement.Center,
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.clickable {
-                                                    Log.d(
-                                                        "MainActivity",
-                                                        "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
-                                                    )
-                                                    appViewModel.addBookmark(jsonResponse.apps[item].id)
-                                                }) {
-                                                Box(
-                                                    Modifier
-                                                        .padding(8.dp, 8.dp, 8.dp, 24.dp)
-                                                        .size(52.dp)
-                                                        .background(
-                                                            Color(0xFF2F4675), CircleShape
-                                                        ), contentAlignment = Alignment.Center
-                                                ) {
-                                                    AsyncImage(
-                                                        model = context.resources.getIdentifier(
-                                                            jsonResponse?.apps!![item].imageLocalName.lowercase(),
-                                                            "drawable",
-                                                            context.packageName
-                                                        ),
-                                                        contentDescription = "University of Toronto Logo",
-                                                        contentScale = ContentScale.Fit,
-                                                        modifier = Modifier.height(32.dp),
-                                                    )
-                                                    if (bookmarksDTOList?.any { item1 -> item1.id == jsonResponse.apps[item].id } == true) {
-                                                        AsyncImage(
-                                                            model = R.drawable.checkmark,
-                                                            contentDescription = "Selected"
-                                                        )
-                                                    }
-                                                }
                                                 Text(
-                                                    fontWeight = FontWeight.Medium,
-                                                    text = jsonResponse?.apps!![item].name,
-                                                    textAlign = TextAlign.Center,
-                                                    color = Color.DarkGray,
-                                                    softWrap = true
+                                                    text = key,
+                                                    modifier = Modifier.padding(vertical = 12.dp),
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.secondaryContainer
                                                 )
+                                            }
+                                            items(value.apps.toList(), key = { it }) { item ->
+                                                Column(verticalArrangement = Arrangement.Center,
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    modifier = Modifier.clickable {
+                                                        Log.d(
+                                                            "MainActivity",
+                                                            "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
+                                                        )
+                                                        appViewModel.addBookmark(jsonResponse.apps[item].id)
+                                                    }) {
+                                                    Box(
+                                                        Modifier
+                                                            .padding(8.dp, 8.dp, 8.dp, 24.dp)
+                                                            .size(52.dp)
+                                                            .background(
+                                                                Color(0xFF2F4675), CircleShape
+                                                            ), contentAlignment = Alignment.Center
+                                                    ) {
+                                                        AsyncImage(
+                                                            model = context.resources.getIdentifier(
+                                                                jsonResponse?.apps!![item].imageLocalName.lowercase(),
+                                                                "drawable",
+                                                                context.packageName
+                                                            ),
+                                                            contentDescription = "University of Toronto Logo",
+                                                            contentScale = ContentScale.Fit,
+                                                            modifier = Modifier.height(32.dp),
+                                                        )
+                                                        if (bookmarksDTOList?.any { item1 -> item1.id == jsonResponse.apps[item].id } == true) {
+                                                            AsyncImage(
+                                                                model = R.drawable.checkmark,
+                                                                contentDescription = "Selected"
+                                                            )
+                                                        }
+                                                    }
+                                                    Text(
+                                                        fontWeight = FontWeight.Medium,
+                                                        text = jsonResponse?.apps!![item].name,
+                                                        textAlign = TextAlign.Center,
+                                                        color = Color.DarkGray,
+                                                        softWrap = true
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            })
+                                })
                         }
                     }
                 }

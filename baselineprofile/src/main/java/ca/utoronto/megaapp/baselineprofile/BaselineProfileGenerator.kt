@@ -4,6 +4,8 @@ import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.Until
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -63,6 +65,24 @@ class BaselineProfileGenerator {
 
             // Check UiAutomator documentation for more information how to interact with the app.
             // https://d.android.com/training/testing/other-components/ui-automator
+            device.wait(Until.hasObject(By.res("Startup Instructions Dismiss Button")), 5_000)
+            device.findObject(By.res("Startup Instructions Dismiss Button"))?.click()
+
+            device.wait(Until.hasObject(By.res("AddButton")), 5_000)
+            val addNavButton = device.findObject(By.res("AddButton"))
+            addNavButton.click()
+            device.pressBack()
+
+//            device.wait(Until.hasObject(By.res("overFlowMenu")), 5_000)
+//            device.findObject(By.res("overFlowMenu"))?.click()
+//
+//            device.wait(Until.hasObject(By.res("editMenu")), 5_000)
+//            device.findObject(By.res("editMenu"))?.click()
+//            device.pressBack()
+//
+//            device.wait(Until.hasObject(By.res("settingMenu")), 5_000)
+//            device.findObject(By.res("settingMenu"))?.click()
+//            device.pressBack()
         }
     }
 }
