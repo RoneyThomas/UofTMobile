@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import ca.utoronto.megaapp.R
@@ -71,7 +72,7 @@ class SettingsPage
                     .padding(horizontal = 16.dp)
                     .padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                AboutPageSection(mainText = "Settings", subText = "")
+                SettingsPageSection(mainText = "Settings", subText = "")
 
                 Text("Reset UofT Mobile", modifier = Modifier.clickable {
                     Toast.makeText(context, "Bookmarks Reset", Toast.LENGTH_SHORT).show()
@@ -84,11 +85,11 @@ class SettingsPage
 
                 HorizontalDivider()
 
-                AboutPageSection(mainText = "Version", subText = "Version 3.0, Build 1")
+                SettingsPageSection(mainText = "Version", subText = "Version 3.0, Build 1")
 
                 HorizontalDivider()
 
-                AboutPageSection(
+                SettingsPageSection(
                     mainText = "Feedback",
                     subText = "Have any comments or suggestions on the content or layout of U of T Mobile? " + "We'd love to hear it!"
                 )
@@ -113,7 +114,7 @@ class SettingsPage
                     }
                 }
 
-                AsyncImage(model = R.drawable.madlab,
+                AsyncImage(model = R.drawable.madlablogo,
                     contentDescription = "Mobile Application Lab logo",
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -124,12 +125,19 @@ class SettingsPage
                                 .build()
                             intent.launchUrl(context, Uri.parse(url))
                         })
+                Text(
+                    text = "MADLab\nUniversity of Toronto",
+                    Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Light,
+                    color = Color.DarkGray
+                )
             }
         }
     }
 
     @Composable
-    private fun AboutPageSection(mainText: String, subText: String) {
+    private fun SettingsPageSection(mainText: String, subText: String) {
         Text(
             text = mainText,
             fontWeight = FontWeight.Bold,

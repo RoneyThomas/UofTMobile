@@ -108,7 +108,9 @@ import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.theme.extraLightBlue
 import ca.utoronto.megaapp.ui.theme.lightBlue
 import ca.utoronto.megaapp.ui.theme.onSecondaryLight
+import ca.utoronto.megaapp.ui.theme.primaryLight
 import ca.utoronto.megaapp.ui.theme.roundBookmarkBlue
+import ca.utoronto.megaapp.ui.theme.scrimLight
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -126,6 +128,7 @@ fun HomeScreen(
 ) {
     // Sets the navigationBarColor, remove this in future when switching to dynamic theming
     (LocalView.current.context as Activity).window.navigationBarColor = lightBlue.toArgb()
+    (LocalView.current.context as Activity).window.navigationBarColor = primaryLight.toArgb()
 
     val context = LocalContext.current
 
@@ -163,7 +166,7 @@ fun HomeScreen(
                 ),
                 title = {
                     AsyncImage(
-                        model = R.drawable.uoft,
+                        model = R.drawable.uoftcrst_stacked_white_webp,
                         contentDescription = "University of Toronto Logo",
                         modifier = Modifier.height(48.dp)
                     )
@@ -380,8 +383,10 @@ fun HomeScreen(
                             ) {
                                 TextField(value = searchQuery ?: "",
                                     onValueChange = {
-                                        appViewModel.searchQuery.value = it
+                                        // Setting max value for textfield to 15
+                                        if (it.length <= 15) appViewModel.searchQuery.value = it
                                     },
+                                    singleLine = true,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .border(
