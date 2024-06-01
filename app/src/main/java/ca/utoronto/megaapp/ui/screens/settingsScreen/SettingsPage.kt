@@ -126,7 +126,9 @@ fun SettingsPage(
                         })
                 Text(
                     text = "MADLab\nUniversity of Toronto",
-                    Modifier.fillMaxWidth().padding(top = 12.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Light,
                     color = Color.DarkGray

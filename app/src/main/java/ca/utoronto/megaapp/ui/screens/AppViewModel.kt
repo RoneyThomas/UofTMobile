@@ -88,6 +88,7 @@ class AppViewModel(private val application: Application) :
     }
 
     // Creates Sections DTO from jsonResponse, used in the bottom sheet, where we need to show section along with its apps
+    // The switchmap transform function automatically runs when jsonResponse is updated and is observed in the view
     private fun sections(): LiveData<Map<String, SectionsDTO>> = jsonResponse.switchMap {
         run {
             val sectionsDTOList: MutableMap<String, SectionsDTO> =

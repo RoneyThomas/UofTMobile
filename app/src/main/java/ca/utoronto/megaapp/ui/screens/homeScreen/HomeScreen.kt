@@ -107,8 +107,8 @@ import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.theme.extraLightBlue
 import ca.utoronto.megaapp.ui.theme.lightBlue
 import ca.utoronto.megaapp.ui.theme.onSecondaryLight
-import ca.utoronto.megaapp.ui.theme.primaryLight
 import ca.utoronto.megaapp.ui.theme.roundBookmarkBlue
+import ca.utoronto.megaapp.ui.util.iconResourceMap
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -267,7 +267,9 @@ fun HomeScreen(
                             dragDropState = dragDropState,
                             index = index,
                         ) { isDragging ->
-                            val elevation by animateDpAsState(if (isDragging) 2.dp else 0.dp)
+                            val elevation by animateDpAsState(
+                                if (isDragging) 2.dp else 0.dp, label = "dragAndDropAnimation"
+                            )
                             Surface(
                                 shadowElevation = elevation,
                                 color = Color.White,
@@ -292,10 +294,9 @@ fun HomeScreen(
                                                 roundBookmarkBlue, CircleShape
                                             ),
                                     ) {
+
                                         AsyncImage(
-                                            model = context.resources.getIdentifier(
-                                                item.imageLocation, "drawable", context.packageName
-                                            ),
+                                            model = iconResourceMap[item.imageLocation],
                                             contentDescription = "University of Toronto Logo",
                                             contentScale = ContentScale.Fit,
                                             modifier = Modifier
@@ -381,7 +382,7 @@ fun HomeScreen(
                             ) {
                                 TextField(value = searchQuery ?: "",
                                     onValueChange = {
-                                        // Setting max value for textfield to 15
+                                        // Setting max value for textField to 15
                                         if (it.length <= 15) appViewModel.searchQuery.value = it
                                     },
                                     singleLine = true,
@@ -443,11 +444,7 @@ fun HomeScreen(
                                                         ), contentAlignment = Alignment.Center
                                                 ) {
                                                     AsyncImage(
-                                                        model = context.resources.getIdentifier(
-                                                            jsonResponse?.apps!![item].imageLocalName.lowercase(),
-                                                            "drawable",
-                                                            context.packageName
-                                                        ),
+                                                        model = iconResourceMap[jsonResponse?.apps!![item].imageLocalName.lowercase()],
                                                         contentDescription = "University of Toronto Logo",
                                                         contentScale = ContentScale.Fit,
                                                         modifier = Modifier.height(32.dp),
