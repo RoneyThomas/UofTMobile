@@ -105,8 +105,10 @@ import androidx.compose.ui.zIndex
 import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.theme.extraLightBlue
+import ca.utoronto.megaapp.ui.theme.green
 import ca.utoronto.megaapp.ui.theme.lightBlue
 import ca.utoronto.megaapp.ui.theme.onSecondaryLight
+import ca.utoronto.megaapp.ui.theme.red
 import ca.utoronto.megaapp.ui.theme.roundBookmarkBlue
 import ca.utoronto.megaapp.ui.util.iconResourceMap
 import coil.compose.AsyncImage
@@ -308,7 +310,7 @@ fun HomeScreen(
                                             IconButton(modifier = Modifier
                                                 .size(18.dp)
                                                 .clip(CircleShape)
-                                                .background(Color.Red)
+                                                .background(red)
                                                 .align(
                                                     Alignment.TopEnd
                                                 )
@@ -450,10 +452,21 @@ fun HomeScreen(
                                                         modifier = Modifier.height(32.dp),
                                                     )
                                                     if (bookmarksDTOList?.any { item1 -> item1.id == jsonResponse.apps[item].id } == true) {
-                                                        AsyncImage(
-                                                            model = R.drawable.checkmark,
-                                                            contentDescription = "Selected"
-                                                        )
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(18.dp)
+                                                                .clip(CircleShape)
+                                                                .background(green)
+                                                                .align(
+                                                                    Alignment.TopEnd
+                                                                )
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Filled.Done,
+                                                                tint = Color.White,
+                                                                contentDescription = "Remove Bookmark",
+                                                            )
+                                                        }
                                                     }
                                                 }
                                                 Text(

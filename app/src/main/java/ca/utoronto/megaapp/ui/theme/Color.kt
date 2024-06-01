@@ -41,4 +41,6 @@ val surfaceContainerHighestLight = Color(0xFFE5E2E1)
 val extraLightBlue = Color(0XFFedfbfe)
 val lightBlue = Color(0XFFb1ddee)
 val roundBookmarkBlue = Color(0xFF2F4675)
+val green = Color(0xFF4CAF50)
+val red = Color(0xFFF44336)
 
