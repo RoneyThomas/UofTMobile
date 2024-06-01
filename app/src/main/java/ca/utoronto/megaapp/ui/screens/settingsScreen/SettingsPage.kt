@@ -42,12 +42,10 @@ import coil.compose.AsyncImage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(
-    appViewModel: AppViewModel,
-    navController: NavHostController
+    appViewModel: AppViewModel, navController: NavHostController
 ) {
     // Sets the navigationBarColor, remove this in future when switching to dynamic theming
-    (LocalView.current.context as Activity).window.navigationBarColor =
-        Color.Transparent.toArgb()
+    (LocalView.current.context as Activity).window.navigationBarColor = Color.Transparent.toArgb()
 
     val context = LocalContext.current
     Log.d("MainActivity", "SettingsPage: ")
@@ -114,25 +112,26 @@ fun SettingsPage(
                     Text("Submit Feedback")
                 }
             }
-
-            AsyncImage(model = R.drawable.madlablogo,
-                contentDescription = "Mobile Application Lab logo",
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .clickable {
-                        val url = "https://mobile.utoronto.ca/"
-                        val intent = CustomTabsIntent
-                            .Builder()
-                            .build()
-                        intent.launchUrl(context, Uri.parse(url))
-                    })
-            Text(
-                text = "MADLab\nUniversity of Toronto",
-                Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Light,
-                color = Color.DarkGray
-            )
+            Column {
+                AsyncImage(model = R.drawable.madlablogo,
+                    contentDescription = "Mobile Application Lab logo",
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .clickable {
+                            val url = "https://mobile.utoronto.ca/"
+                            val intent = CustomTabsIntent
+                                .Builder()
+                                .build()
+                            intent.launchUrl(context, Uri.parse(url))
+                        })
+                Text(
+                    text = "MADLab\nUniversity of Toronto",
+                    Modifier.fillMaxWidth().padding(top = 12.dp),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Light,
+                    color = Color.DarkGray
+                )
+            }
         }
     }
 }

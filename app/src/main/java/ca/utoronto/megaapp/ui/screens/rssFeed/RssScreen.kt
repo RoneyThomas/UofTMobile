@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
 import androidx.navigation.NavHostController
 import ca.utoronto.megaapp.ui.screens.AppViewModel
@@ -104,13 +103,11 @@ fun RssScreen(appViewModel: AppViewModel, navController: NavHostController) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Not Connected to Internet", fontWeight = FontWeight.Normal,
-                            fontSize = 24.sp
+                            text = "Not Connected to Internet", fontWeight = FontWeight.Light,
                         )
                     }
                 }
             }
-
         }
     }
 }

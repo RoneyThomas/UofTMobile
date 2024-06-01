@@ -2,14 +2,10 @@ package ca.utoronto.megaapp
 
 import android.app.Application
 import android.os.Bundle
-import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,10 +20,7 @@ import ca.utoronto.megaapp.ui.theme.UofTMobileTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            val window: Window = this.window
-            window.navigationBarColor = Color.Transparent.toArgb()
             UofTMobileNavHost(
                 application = application
             )

@@ -67,6 +67,8 @@ class AppViewModel(private val application: Application) :
 
     private fun loadApps() {
         uofTMobileRepository.loadApps()
+        // DataStore is used for key-value persistence, here we are checking if the app is loaded for first time
+        // If that is the case then we need to show instructions in home page
         val bookmarksFlow: Flow<Boolean> = dataStore.data.map { preferences ->
             preferences[booleanPreferencesKey("firstLaunch")] ?: true
         }
@@ -107,8 +109,9 @@ class AppViewModel(private val application: Application) :
                     }
                 }
             }
-
-            // Loads bookmark, gets the users app keys from datastore and maps it jsonResponse to create book dto list
+            // The App only stores app id for each app the user pins to home screen, when the app is opened we need to
+            // get the keys from DataStore and match it with jsonResponse for full BookmarkDTO,
+            // Which is then consumed by the HomeScreen
             if (bookmarksDTOList.value == null) {
                 val bookmarksFlow: Flow<String> = dataStore.data.map { preferences ->
                     preferences[stringPreferencesKey("bookmark")] ?: ""
@@ -140,6 +143,8 @@ class AppViewModel(private val application: Application) :
                                 bookmarksDTOList.postValue(updateList)
                             }
                         } else {
+                            // If there is no bookmarks found from DataStore, that means we need to show the mandatory apps
+                            // Happens when the app is opened first time or when app is reset
                             resetToMandatoryApps()
                         }
                         this.cancel()
@@ -150,6 +155,7 @@ class AppViewModel(private val application: Application) :
         }
     }
 
+    // Resets the pinned apps to mandatory apps and then saves it
     private fun resetToMandatoryApps() {
         updateList = jsonResponse.value?.apps?.filter {
             isMandatory(it.id)
@@ -256,6 +262,7 @@ class AppViewModel(private val application: Application) :
         }
     }
 
+    // Sets the edit mode, the purpose is when isEdit is false(when user press's done button after an edit) we save the bookmarks
     fun setEditMode(isEdit: Boolean) {
         // When done editing, save bookmarks to datastore
         if (!isEdit) {
@@ -266,6 +273,7 @@ class AppViewModel(private val application: Application) :
         editMode.value = isEdit
     }
 
+    // Used by the drag and drop, to swap bookmarks
     fun swapBookmark(i1: Int, i2: Int) {
         Log.d("AppViewModel", "i1: $i1, i2: $i2")
         Log.d("AppViewModel swapBookmark", updateList.toString())
@@ -275,6 +283,7 @@ class AppViewModel(private val application: Application) :
         bookmarksDTOList.value = updateList
     }
 
+    // When user dismisses the bookmark instructions we need save it in DataStore so that we don't show it again
     fun hideBookmarkInstructions() {
         showBookmarkInstructions.value = false
         viewModelScope.launch {
@@ -284,10 +293,12 @@ class AppViewModel(private val application: Application) :
         }
     }
 
+    // Checks an app with given id is mandatory or not from the jsonResponse
     fun isMandatory(id: String): Boolean {
         return jsonResponse.value?.mandatoryApps?.contains(id) ?: false
     }
 
+    // Used by the RssScreen
     fun getRssFeed(): LiveData<RssChannel> {
         rssFeed = liveData {
             val data = EngRSSRepository(client).rssChannel()

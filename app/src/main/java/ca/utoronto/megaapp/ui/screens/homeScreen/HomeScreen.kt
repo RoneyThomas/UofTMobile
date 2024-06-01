@@ -125,7 +125,6 @@ fun HomeScreen(
 ) {
     // Sets the navigationBarColor, remove this in future when switching to dynamic theming
     (LocalView.current.context as Activity).window.navigationBarColor = lightBlue.toArgb()
-    (LocalView.current.context as Activity).window.navigationBarColor = primaryLight.toArgb()
 
     val context = LocalContext.current
 
@@ -338,7 +337,7 @@ fun HomeScreen(
                     }
                 }
             }
-            // Show bookmark instructions the first time app is installed or reset
+            // Shows instructions the first time app is installed or reset
             if (showBookmarkInstructions == true) {
                 Card(
                     colors = CardDefaults.cardColors(

@@ -27,13 +27,13 @@ class UofTMobileRepository(val context: Context, private val client: OkHttpClien
 
     fun loadApps() {
         client.newCall(request).enqueue(object : Callback {
+            // On fail, loads json from assets folder
             override fun onFailure(call: Call, e: IOException) {
                 when (e) {
                     is UnknownHostException -> Log.d(tag, "onFailure: Unknown host!")
                     is ConnectException -> Log.d(tag, "onFailure: No internet!")
                     else -> e.printStackTrace()
                 }
-                // Loads local JSON when network request fails
                 result.postValue(
                     Json.decodeFromString(context.assets.open("UofTMobile.json").bufferedReader()
                         .use { it.readText() }) as UofTMobile
