@@ -54,7 +54,6 @@ class AppViewModel(private val application: Application) :
     private val firstLaunchStoreKey = booleanPreferencesKey("firstLaunch")
 
     val showBookmarkInstructions = MutableLiveData(false)
-    val editMode = MutableLiveData(false)
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
     private var bookmarksDTOList = MutableLiveData<List<BookmarkDTO>>()
     var searchQuery = MutableLiveData("")
@@ -263,17 +262,6 @@ class AppViewModel(private val application: Application) :
         }
     }
 
-    // Sets the edit mode, the purpose is when isEdit is false(when user press's done button after an edit) we save the bookmarks
-    fun setEditMode(isEdit: Boolean) {
-        // When done editing, save bookmarks to datastore
-        if (!isEdit) {
-            viewModelScope.launch {
-                savePreference()
-            }
-        }
-        editMode.value = isEdit
-    }
-
     // Used by the drag and drop, to swap bookmarks
     fun swapBookmark(i1: Int, i2: Int) {
         Log.d("AppViewModel", "i1: $i1, i2: $i2")
@@ -282,6 +270,9 @@ class AppViewModel(private val application: Application) :
         updateList.add(i2, updateList.removeAt(i1))
         Log.d("AppViewModel swapBookmark", updateList.toString())
         bookmarksDTOList.value = updateList
+        viewModelScope.launch {
+            savePreference()
+        }
     }
 
     // When user dismisses the bookmark instructions we need save it in DataStore so that we don't show it again

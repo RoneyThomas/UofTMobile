@@ -77,6 +77,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -136,8 +137,7 @@ fun HomeScreen(
     var addBookmarkSheet by remember { mutableStateOf(false) }
     val addBookmarkSheetState = rememberModalBottomSheetState()
     var overFlowMenuExpanded by remember { mutableStateOf(false) }
-
-    val editMode = appViewModel.editMode.observeAsState().value
+    var editMode by rememberSaveable { mutableStateOf(false) }
     val searchQuery = appViewModel.searchQuery.observeAsState().value
     val searchSections = appViewModel.filteredSections().observeAsState().value
     val showBookmarkInstructions = appViewModel.showBookmarkInstructions.observeAsState().value
@@ -173,12 +173,12 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    Crossfade(targetState = editMode, label = "editIconCrossFade") { editMode ->
+                    Crossfade(targetState = editMode, label = "editIconCrossFade") { mode ->
                         // note that it's required to use the value passed by Crossfade
                         // instead of your state value
-                        if (editMode == true) {
+                        if (mode == true) {
                             IconButton(onClick = {
-                                appViewModel.setEditMode(false)
+                                editMode = false
                             }, modifier = Modifier.testTag("DoneButton")) {
                                 Icon(
                                     imageVector = Icons.Default.Done,
@@ -188,7 +188,7 @@ fun HomeScreen(
                         } else {
                             IconButton(onClick = {
                                 addBookmarkSheet = true
-                                appViewModel.setEditMode(false)
+                                editMode = false
                             }, modifier = Modifier.testTag("AddButton")) {
                                 Icon(
                                     imageVector = Icons.Default.Add, contentDescription = "Add"
@@ -216,7 +216,7 @@ fun HomeScreen(
                             DropdownMenuItem(text = { Text("Edit") },
                                 modifier = Modifier.testTag("editMenu"),
                                 onClick = {
-                                    appViewModel.setEditMode(true)
+                                    editMode = true
                                     Toast.makeText(
                                         context,
                                         "Drag and drop to rearrange bookmarks",
