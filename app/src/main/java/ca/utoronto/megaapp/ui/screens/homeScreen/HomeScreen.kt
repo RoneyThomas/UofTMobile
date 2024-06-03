@@ -367,7 +367,7 @@ fun HomeScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp, 8.dp)) {
                         Text(
-                            "To get started, simply click the + symbol in the bottom left corner to access to list of bookmarks from UofT.",
+                            "To get started, simply click the + symbol to access to list of bookmarks from UofT.",
                             color = Color.DarkGray
                         )
                         Row {
