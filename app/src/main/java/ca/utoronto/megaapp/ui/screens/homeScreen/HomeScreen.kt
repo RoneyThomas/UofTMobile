@@ -322,7 +322,7 @@ fun HomeScreen(
                                                 .align(Alignment.Center),
                                         )
 
-                                        if (editMode == true && !appViewModel.isMandatory(item.id)) {
+                                        if (editMode && !appViewModel.isMandatory(item.id)) {
                                             IconButton(modifier = Modifier
                                                 .size(18.dp)
                                                 .clip(CircleShape)
