@@ -14,8 +14,8 @@ android {
         applicationId = "ca.utoronto.megaapp"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "3.9.6"
+        versionCode = 40000
+        versionName = "4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
