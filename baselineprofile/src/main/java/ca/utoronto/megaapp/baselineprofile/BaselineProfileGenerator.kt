@@ -73,16 +73,23 @@ class BaselineProfileGenerator {
             addNavButton.click()
             device.pressBack()
 
-//            device.wait(Until.hasObject(By.res("overFlowMenu")), 5_000)
-//            device.findObject(By.res("overFlowMenu"))?.click()
-//
-//            device.wait(Until.hasObject(By.res("editMenu")), 5_000)
-//            device.findObject(By.res("editMenu"))?.click()
-//            device.pressBack()
-//
-//            device.wait(Until.hasObject(By.res("settingMenu")), 5_000)
-//            device.findObject(By.res("settingMenu"))?.click()
-//            device.pressBack()
+            device.wait(Until.hasObject(By.res("overFlowMenu")), 2_000)
+            device.findObject(By.res("overFlowMenu"))?.click()
+
+            device.wait(Until.hasObject(By.text("Edit")), 2_000)
+            device.findObject(By.text("Edit"))?.click()
+
+            device.wait(Until.hasObject(By.desc("Done Editing")), 2_000)
+            device.findObject(By.desc("Done Editing"))?.click()
+
+            device.wait(Until.hasObject(By.res("overFlowMenu")), 2_000)
+            device.findObject(By.res("overFlowMenu"))?.click()
+
+            device.wait(Until.hasObject(By.text("Setting")), 2_000)
+            device.findObject(By.text("Setting"))?.click()
+
+            device.wait(Until.hasObject(By.desc("Back")), 2_000)
+            device.findObject(By.desc("Back"))?.click()
         }
     }
 }

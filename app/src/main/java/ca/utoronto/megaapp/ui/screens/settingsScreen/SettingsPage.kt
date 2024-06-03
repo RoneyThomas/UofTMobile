@@ -25,11 +25,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,7 +42,7 @@ import ca.utoronto.megaapp.ui.screens.AppViewModel
 import coil.compose.AsyncImage
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsPage(
     appViewModel: AppViewModel, navController: NavHostController
@@ -49,22 +52,29 @@ fun SettingsPage(
 
     val context = LocalContext.current
     Log.d("MainActivity", "SettingsPage: ")
-    Scaffold(topBar = {
-        TopAppBar(colors = topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.surface,
-        ), title = {
-            Text("Settings")
-        }, navigationIcon = {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    tint = MaterialTheme.colorScheme.surface,
-                    contentDescription = "Back"
-                )
-            }
-        })
-    }) { innerPadding ->
+    Scaffold(
+        modifier = Modifier
+            // For UiAutomator
+            // https://medium.com/androiddevelopers/accessing-composables-from-uiautomator-cf316515edc2
+            .semantics {
+                testTagsAsResourceId = true
+            },
+        topBar = {
+            TopAppBar(colors = topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                titleContentColor = MaterialTheme.colorScheme.surface,
+            ), title = {
+                Text("Settings")
+            }, navigationIcon = {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        tint = MaterialTheme.colorScheme.surface,
+                        contentDescription = "Back"
+                    )
+                }
+            })
+        }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)

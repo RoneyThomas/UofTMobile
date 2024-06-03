@@ -1,6 +1,8 @@
 package ca.utoronto.megaapp.ui.screens.homeScreen
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -177,8 +179,7 @@ fun HomeScreen(
                         if (editMode == true) {
                             IconButton(onClick = {
                                 appViewModel.setEditMode(false)
-
-                            }) {
+                            }, modifier = Modifier.testTag("DoneButton")) {
                                 Icon(
                                     imageVector = Icons.Default.Done,
                                     contentDescription = "Done Editing"
@@ -198,7 +199,10 @@ fun HomeScreen(
                     Box(
                         modifier = Modifier.wrapContentSize(Alignment.TopEnd)
                     ) {
-                        IconButton(onClick = { overFlowMenuExpanded = !overFlowMenuExpanded }) {
+                        IconButton(
+                            onClick = { overFlowMenuExpanded = !overFlowMenuExpanded },
+                            modifier = Modifier.testTag("overFlowMenu")
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert, contentDescription = "More"
                             )
@@ -208,7 +212,6 @@ fun HomeScreen(
                             expanded = overFlowMenuExpanded,
                             onDismissRequest = { overFlowMenuExpanded = false },
                             containerColor = MaterialTheme.colorScheme.surface,
-                            modifier = Modifier.testTag("overFlowMenu")
                         ) {
                             DropdownMenuItem(text = { Text("Edit") },
                                 modifier = Modifier.testTag("editMenu"),
@@ -283,9 +286,22 @@ fun HomeScreen(
                                         if (item.id == "newseng") {
                                             onNavigateToRssScreen.invoke()
                                         } else {
-                                            val url = item.url
-                                            val intent = CustomTabsIntent.Builder().build()
-                                            intent.launchUrl(context, Uri.parse(url))
+                                            try {
+                                                val url = item.url
+                                                val intent = CustomTabsIntent.Builder().build()
+                                                intent.launchUrl(context, Uri.parse(url))
+                                            } catch (e: ActivityNotFoundException) {
+                                                // If Quercus app is not installed then the intent cannot be handled, causing exception,
+                                                // In that case open Google Play to show Quercus app, so user can install it
+                                                // In future if the json contains links to other apps and if not installed on device
+                                                // you need to add another switch statement to select which Uri to parse
+                                                context.startActivity(
+                                                    Intent(
+                                                        Intent.ACTION_VIEW,
+                                                        Uri.parse("market://details?id=${"com.instructure.candroid"}")
+                                                    )
+                                                )
+                                            }
                                         }
                                     }) {
                                     Box(
