@@ -3,7 +3,6 @@ package ca.utoronto.megaapp.ui.screens.settingsScreen
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.clickable
@@ -51,7 +50,6 @@ fun SettingsPage(
     (LocalView.current.context as Activity).window.navigationBarColor = Color.Transparent.toArgb()
 
     val context = LocalContext.current
-    Log.d("MainActivity", "SettingsPage: ")
     Scaffold(
         modifier = Modifier
             // For UiAutomator
