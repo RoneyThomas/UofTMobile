@@ -1,5 +1,6 @@
 package ca.utoronto.megaapp.ui.screens.rssFeed
 
+import android.app.Activity
 import android.net.Uri
 import android.util.Log
 import androidx.browser.customtabs.CustomTabsIntent
@@ -22,10 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
 import androidx.navigation.NavHostController
 import ca.utoronto.megaapp.ui.screens.AppViewModel
@@ -34,6 +37,9 @@ import ca.utoronto.megaapp.ui.util.rssDateFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RssScreen(appViewModel: AppViewModel, navController: NavHostController) {
+    // Sets the navigationBarColor, remove this in future when switching to dynamic theming
+    (LocalView.current.context as Activity).window.navigationBarColor = Color.Transparent.toArgb()
+
     val context = LocalContext.current
     val rssFeed = appViewModel.getRssFeed().observeAsState().value
     Log.d("MainActivity", "RssScreen: " + rssFeed?.title)
@@ -97,13 +103,11 @@ fun RssScreen(appViewModel: AppViewModel, navController: NavHostController) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Not Connected to Internet", fontWeight = FontWeight.Normal,
-                            fontSize = 24.sp
+                            text = "Not Connected to Internet", fontWeight = FontWeight.Light,
                         )
                     }
                 }
             }
-
         }
     }
 }

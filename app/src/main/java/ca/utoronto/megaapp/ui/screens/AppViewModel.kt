@@ -1,15 +1,20 @@
 package ca.utoronto.megaapp.ui.screens
 
 import android.app.Application
-import android.content.SharedPreferences
+import android.content.Context
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceManager
 import ca.utoronto.megaapp.data.entities.UofTMobile
 import ca.utoronto.megaapp.data.repository.EngRSSRepository
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
@@ -18,13 +23,20 @@ import ca.utoronto.megaapp.ui.SectionsDTO
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.prof18.rssparser.model.RssChannel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import java.io.File
+import java.util.Locale
 
-class AppViewModel(private val application: Application) : AndroidViewModel(application) {
+// For Jetpack DataStore
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "UofTAppDataStore")
+
+class AppViewModel(private val application: Application) :
+    AndroidViewModel(application) {
 
     // Creates OkHttpClient with http caching
     private val client: OkHttpClient = OkHttpClient.Builder().cache(
@@ -36,20 +48,16 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
 
     private val uofTMobileRepository: UofTMobileRepository =
         UofTMobileRepository(application, client)
-    private val sharedPreferences: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(getApplication())
+
+    private val dataStore = application.applicationContext.dataStore
+    private val bookmarkDataStoreKey = stringPreferencesKey("bookmark")
+    private val firstLaunchStoreKey = booleanPreferencesKey("firstLaunch")
 
     val showBookmarkInstructions = MutableLiveData(false)
-
     val jsonResponse: MutableLiveData<UofTMobile> = uofTMobileRepository.result
-
     private var bookmarksDTOList = MutableLiveData<List<BookmarkDTO>>()
-    var showRemoveIcon = MutableLiveData(false)
-
     var searchQuery = MutableLiveData("")
-    var refresh = MutableLiveData(false)
     private var updateList: MutableList<BookmarkDTO> = mutableListOf()
-
     private lateinit var rssFeed: LiveData<RssChannel>
 
     init {
@@ -58,95 +66,114 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
 
     private fun loadApps() {
         uofTMobileRepository.loadApps()
-        showBookmarkInstructions.value =
-            sharedPreferences.getBoolean("showBookmarkInstructions", true)
-    }
-
-    fun refresh() {
-        refresh.value = true
-        loadApps()
+        // DataStore is used for key-value persistence, here we are checking if the app is loaded for first time
+        // If that is the case then we need to show instructions in home page
+        val bookmarksFlow: Flow<Boolean> = dataStore.data.map { preferences ->
+            preferences[booleanPreferencesKey("firstLaunch")] ?: true
+        }
         viewModelScope.launch {
-            delay(400)
-            refresh.value = false
+            bookmarksFlow.collect {
+                showBookmarkInstructions.value = it
+            }
         }
     }
 
-    fun setEditMode(isEditMode: Boolean) {
-        showRemoveIcon.value = isEditMode
-        bookmarksDTOList.value = bookmarksDTOList.value!!.map { item ->
-            if (jsonResponse.value?.mandatoryApps?.contains(item.id) == false) {
-                item.copy(showRemoveIcon = isEditMode)
-            } else {
-                item
-            }
-        }.toList()
+    fun refresh() {
+        loadApps()
     }
 
     fun getBookMarks(): LiveData<List<BookmarkDTO>> {
         return bookmarksDTOList
     }
 
-    // Creates DTO from jsonResponse
-    private fun sections(): LiveData<Map<String, SectionsDTO>> =
-        jsonResponse.switchMap {
-            run {
-                val sectionsDTOList: MutableMap<String, SectionsDTO> =
-                    emptyMap<String, SectionsDTO>().toMutableMap()
-                jsonResponse.value?.apps?.forEachIndexed { index, app ->
-                    run {
-                        if (!sectionsDTOList.contains(jsonResponse.value!!.sections[app.sectionIndex.toInt()].name)) {
-                            sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name] =
-                                SectionsDTO(
-                                    jsonResponse.value!!.sections[app.sectionIndex.toInt()].index,
-                                    jsonResponse.value!!.sections[app.sectionIndex.toInt()].name,
-                                    mutableListOf(index),
-                                    mutableListOf()
-                                )
-                        } else {
-                            sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name]?.apps?.add(
-                                index
+    // Creates Sections DTO from jsonResponse, used in the bottom sheet, where we need to show section along with its apps
+    // The switchmap transform function automatically runs when jsonResponse is updated and is observed in the view
+    private fun sections(): LiveData<Map<String, SectionsDTO>> = jsonResponse.switchMap {
+        run {
+            val sectionsDTOList: MutableMap<String, SectionsDTO> =
+                emptyMap<String, SectionsDTO>().toMutableMap()
+            jsonResponse.value?.apps?.forEachIndexed { index, app ->
+                run {
+                    if (!sectionsDTOList.contains(jsonResponse.value!!.sections[app.sectionIndex.toInt()].name)) {
+                        sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name] =
+                            SectionsDTO(
+                                jsonResponse.value!!.sections[app.sectionIndex.toInt()].index,
+                                jsonResponse.value!!.sections[app.sectionIndex.toInt()].name,
+                                mutableListOf(index),
+                                mutableListOf()
                             )
-                        }
-                    }
-                }
-
-                // Loads bookmark
-                if (bookmarksDTOList.value == null) {
-                    val sharedPref = sharedPreferences.getString("bookmarks", "")
-                    if (!sharedPref.isNullOrEmpty()) {
-                        val bookmarkList = sharedPref.split(",").toList()
-                        updateList =
-                            jsonResponse.value?.apps?.filter { bookmarkList.contains(it.id) }?.map {
-                                BookmarkDTO(
-                                    it.id,
-                                    it.name,
-                                    it.url,
-                                    it.imageLocalName,
-                                    it.imageURL,
-                                    false
-                                )
-                            }?.toMutableList() ?: mutableListOf()
-                        bookmarksDTOList.postValue(updateList)
                     } else {
-                        resetToMandatoryApps()
-                        savePreference()
+                        sectionsDTOList[jsonResponse.value!!.sections[app.sectionIndex.toInt()].name]?.apps?.add(
+                            index
+                        )
                     }
                 }
-                return@switchMap MutableLiveData(sectionsDTOList)
             }
+            // The App only stores app id for each app the user pins to home screen, when the app is opened we need to
+            // get the keys from DataStore and match it with jsonResponse for full BookmarkDTO,
+            // Which is then consumed by the HomeScreen
+            if (bookmarksDTOList.value == null) {
+                val bookmarksFlow: Flow<String> = dataStore.data.map { preferences ->
+                    preferences[stringPreferencesKey("bookmark")] ?: ""
+                }
+                viewModelScope.launch {
+                    bookmarksFlow.collect {
+                        Log.d("Flow before it", it)
+                        if (it.isNotEmpty()) {
+                            Log.d("Flow inside", it)
+                            if (updateList.isEmpty()) {
+                                val bookmarkList = it.split(",").toList()
+                                bookmarkList.forEach { id ->
+                                    val app = jsonResponse.value?.apps?.first { it.id == id }
+                                    if (app != null) {
+                                        updateList.add(
+                                            BookmarkDTO(
+                                                app.id,
+                                                app.name,
+                                                app.url,
+                                                app.imageURL.ifEmpty {
+                                                    app.imageLocalName.lowercase(
+                                                        Locale.getDefault()
+                                                    )
+                                                },
+                                            )
+                                        )
+                                    }
+                                }
+                                bookmarksDTOList.postValue(updateList)
+                            }
+                        } else {
+                            // If there is no bookmarks found from DataStore, that means we need to show the mandatory apps
+                            // Happens when the app is opened first time or when app is reset
+                            resetToMandatoryApps()
+                        }
+                        this.cancel()
+                    }
+                }
+            }
+            return@switchMap MutableLiveData(sectionsDTOList)
         }
-
-    private fun resetToMandatoryApps() {
-        updateList =
-            jsonResponse.value?.apps?.filter {
-                jsonResponse.value?.mandatoryApps?.contains(it.id)
-                    ?: false
-            }?.map {
-                BookmarkDTO(it.id, it.name, it.url, it.imageLocalName, it.imageURL, false)
-            }?.toMutableList() ?: mutableListOf()
-        bookmarksDTOList.postValue(updateList)
     }
 
+    // Resets the pinned apps to mandatory apps and then saves it
+    private fun resetToMandatoryApps() {
+        updateList = jsonResponse.value?.apps?.filter {
+            isMandatory(it.id)
+        }?.map {
+            BookmarkDTO(
+                it.id,
+                it.name,
+                it.url,
+                it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
+            )
+        }?.toMutableList() ?: mutableListOf()
+        bookmarksDTOList.value = updateList
+        viewModelScope.launch {
+            savePreference()
+        }
+    }
+
+    // Used for search in bottom sheet, will create apps that match the searchQuery
     fun filteredSections(): LiveData<Map<String, SectionsDTO>> = searchQuery.switchMap { query ->
         val sectionsDTOList: MutableMap<String, SectionsDTO> =
             emptyMap<String, SectionsDTO>().toMutableMap()
@@ -176,26 +203,24 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
     }
 
     fun addBookmark(id: String) {
-        if (jsonResponse.value?.mandatoryApps?.contains(id) != true) {
+        // Only non-mandatory apps can be added
+        if (!isMandatory(id)) {
             if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
                 updateList = bookmarksDTOList.value!!.toMutableList()
-                val bookmarkDTO = jsonResponse.value?.apps
-                    ?.filter { it.id == id }
-                    ?.map {
-                        BookmarkDTO(
-                            it.id,
-                            it.name,
-                            it.url,
-                            it.imageLocalName,
-                            it.imageURL,
-                            false
-                        )
-                    }
-                    ?.first()
+                val bookmarkDTO = jsonResponse.value?.apps?.filter { it.id == id }?.map {
+                    BookmarkDTO(
+                        it.id,
+                        it.name,
+                        it.url,
+                        it.imageURL.ifEmpty { it.imageLocalName.lowercase(Locale.getDefault()) },
+                    )
+                }?.first()
                 if (bookmarkDTO != null) {
                     updateList.add(bookmarkDTO)
                     bookmarksDTOList.value = updateList.toList()
-                    savePreference()
+                    viewModelScope.launch {
+                        savePreference()
+                    }
                 }
             } else {
                 removeBookmark(id)
@@ -203,48 +228,69 @@ class AppViewModel(private val application: Application) : AndroidViewModel(appl
         }
     }
 
-    private fun savePreference() {
-        sharedPreferences.edit()
-            .putString(
-                "bookmarks",
-                bookmarksDTOList.value?.map { it.id }?.joinToString(separator = ",")
-            )
-            .apply()
+    private suspend fun savePreference() {
+        dataStore.edit { preferences ->
+            preferences[bookmarkDataStoreKey] =
+                bookmarksDTOList.value?.joinToString(separator = ",") { it.id }.toString()
+        }
+        Log.d("AppViewModel savePreference", bookmarksDTOList.toString())
     }
 
     @OptIn(ExperimentalCoilApi::class)
     fun resetBookmarks() {
+        resetToMandatoryApps()
+        // Reset OkHTTP Cache
         client.cache?.evictAll()
+        // Reset Koil cache
         application.imageLoader.diskCache?.clear()
         application.imageLoader.memoryCache?.clear()
-        resetToMandatoryApps()
-        savePreference()
         showBookmarkInstructions.value = true
-        sharedPreferences.edit()
-            .putBoolean("showBookmarkInstructions", true).apply()
+        // Reset preferences
+        viewModelScope.launch {
+            dataStore.edit {
+                it.clear()
+            }
+        }
     }
 
     fun removeBookmark(id: String) {
         updateList = bookmarksDTOList.value!!.toMutableList()
         updateList.removeIf { it.id == id }
         bookmarksDTOList.value = updateList.toList()
-        savePreference()
-    }
-
-    fun swapBookmark(i1: Int, i2: Int) {
-        Log.d("AppViewModel", "i1: $i1, i2: $i2")
-        Log.d("AppViewModel", updateList.toString())
-        if (i1 < updateList.size && i2 < updateList.size) {
-            updateList.add(i2, updateList.removeAt(i1))
+        viewModelScope.launch {
+            savePreference()
         }
     }
 
-    fun hideBookmarkInstructions() {
-        showBookmarkInstructions.value = false
-        sharedPreferences.edit()
-            .putBoolean("showBookmarkInstructions", false).apply()
+    // Used by the drag and drop, to swap bookmarks
+    fun swapBookmark(i1: Int, i2: Int) {
+        Log.d("AppViewModel", "i1: $i1, i2: $i2")
+        Log.d("AppViewModel swapBookmark", updateList.toString())
+        updateList = bookmarksDTOList.value?.toMutableList() ?: mutableListOf()
+        updateList.add(i2, updateList.removeAt(i1))
+        Log.d("AppViewModel swapBookmark", updateList.toString())
+        bookmarksDTOList.value = updateList
+        viewModelScope.launch {
+            savePreference()
+        }
     }
 
+    // When user dismisses the bookmark instructions we need save it in DataStore so that we don't show it again
+    fun hideBookmarkInstructions() {
+        showBookmarkInstructions.value = false
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[firstLaunchStoreKey] = false
+            }
+        }
+    }
+
+    // Checks an app with given id is mandatory or not from the jsonResponse
+    fun isMandatory(id: String): Boolean {
+        return jsonResponse.value?.mandatoryApps?.contains(id) ?: false
+    }
+
+    // Used by the RssScreen
     fun getRssFeed(): LiveData<RssChannel> {
         rssFeed = liveData {
             val data = EngRSSRepository(client).rssChannel()

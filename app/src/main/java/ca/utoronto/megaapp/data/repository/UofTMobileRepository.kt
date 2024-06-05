@@ -14,11 +14,12 @@ import okio.IOException
 import java.net.ConnectException
 import java.net.UnknownHostException
 
-
+// Repository responsible for getting json data from s3
 class UofTMobileRepository(val context: Context, private val client: OkHttpClient) {
 
     private val tag: String = "SitesRepository"
 
+    // Could change it to StateFlow, but that is for another day
     var result: MutableLiveData<UofTMobile> = MutableLiveData<UofTMobile>()
 
     private val request: Request = Request.Builder()
@@ -26,13 +27,13 @@ class UofTMobileRepository(val context: Context, private val client: OkHttpClien
 
     fun loadApps() {
         client.newCall(request).enqueue(object : Callback {
+            // On fail, loads json from assets folder
             override fun onFailure(call: Call, e: IOException) {
                 when (e) {
                     is UnknownHostException -> Log.d(tag, "onFailure: Unknown host!")
                     is ConnectException -> Log.d(tag, "onFailure: No internet!")
                     else -> e.printStackTrace()
                 }
-                // Loads local JSON when network request fails
                 result.postValue(
                     Json.decodeFromString(context.assets.open("UofTMobile.json").bufferedReader()
                         .use { it.readText() }) as UofTMobile

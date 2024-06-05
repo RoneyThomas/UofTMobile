@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "UofTMobile"
 include(":app")
+include(":baselineprofile")

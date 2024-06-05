@@ -6,6 +6,7 @@ import com.prof18.rssparser.model.RssChannel
 import kotlinx.coroutines.coroutineScope
 import okhttp3.OkHttpClient
 
+// Repository responsible for getting Eng News RSS feed
 class EngRSSRepository(client: OkHttpClient) {
     private val builder = RssParserBuilder(
         callFactory = client

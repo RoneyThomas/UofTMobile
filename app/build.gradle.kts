@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.jetbrains.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -13,7 +14,7 @@ android {
         applicationId = "ca.utoronto.megaapp"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
+        versionCode = 40000
         versionName = "4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -25,10 +26,12 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            baselineProfile.automaticGenerationDuringBuild = true
         }
     }
     compileOptions {
@@ -67,24 +70,25 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.okhttp)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.extensions)
-    implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.okhttp)
     implementation(libs.rssparser)
-    implementation(libs.androidx.recyclerview)
-    implementation(libs.coil)
     implementation(libs.coil.compose)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences.core)
+    implementation(libs.androidx.profileinstaller)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    "baselineProfile"(project(":baselineprofile"))
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
