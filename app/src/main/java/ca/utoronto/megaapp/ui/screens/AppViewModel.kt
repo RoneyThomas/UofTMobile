@@ -69,7 +69,7 @@ class AppViewModel(private val application: Application) :
         // DataStore is used for key-value persistence, here we are checking if the app is loaded for first time
         // If that is the case then we need to show instructions in home page
         val bookmarksFlow: Flow<Boolean> = dataStore.data.map { preferences ->
-            preferences[booleanPreferencesKey("firstLaunch")] ?: true
+            preferences[firstLaunchStoreKey] ?: true
         }
         viewModelScope.launch {
             bookmarksFlow.collect {
@@ -114,10 +114,10 @@ class AppViewModel(private val application: Application) :
             // Which is then consumed by the HomeScreen
             if (bookmarksDTOList.value == null) {
                 val bookmarksFlow: Flow<String> = dataStore.data.map { preferences ->
-                    preferences[stringPreferencesKey("bookmark")] ?: ""
+                    preferences[bookmarkDataStoreKey] ?: ""
                 }
                 viewModelScope.launch {
-                    bookmarksFlow.collect {
+                    bookmarksFlow.collect { it ->
                         Log.d("Flow before it", it)
                         if (it.isNotEmpty()) {
                             Log.d("Flow inside", it)

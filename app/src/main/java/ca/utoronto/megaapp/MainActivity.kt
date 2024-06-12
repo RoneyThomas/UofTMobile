@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,7 +37,7 @@ fun UofTMobileNavHost(
     startDestination: String = "home",
     application: Application
 ) {
-    val appViewModel = AppViewModel(application)
+    val appViewModel = viewModel { AppViewModel(application) }
     NavHost(
         modifier = modifier, navController = navController, startDestination = startDestination
     ) {
