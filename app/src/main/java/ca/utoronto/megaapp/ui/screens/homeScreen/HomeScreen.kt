@@ -176,7 +176,7 @@ fun HomeScreen(
                     Crossfade(targetState = editMode, label = "editIconCrossFade") { mode ->
                         // note that it's required to use the value passed by Crossfade
                         // instead of your state value
-                        if (mode == true) {
+                        if (mode) {
                             IconButton(onClick = {
                                 editMode = false
                             }, modifier = Modifier.testTag("DoneButton")) {
@@ -224,7 +224,7 @@ fun HomeScreen(
                                     ).show()
                                     overFlowMenuExpanded = false
                                 })
-                            DropdownMenuItem(text = { Text("Setting") },
+                            DropdownMenuItem(text = { Text("Settings") },
                                 modifier = Modifier.testTag("settingMenu"),
                                 onClick = {
                                     onNavigateToSettingsScreen()
