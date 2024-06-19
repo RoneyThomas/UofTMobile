@@ -1,10 +1,10 @@
 package ca.utoronto.megaapp.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
@@ -60,7 +60,10 @@ fun UofTMobileTheme(
     val colorScheme = lightScheme
     val view = LocalView.current
     val window = (view.context as Activity).window
-    window.statusBarColor = colorScheme.primary.toArgb()
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        window.isNavigationBarContrastEnforced = true
+    }
     WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
     WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = true
 

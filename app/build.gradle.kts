@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "ca.utoronto.megaapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "ca.utoronto.megaapp"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 40000
         versionName = "4.0.0"
 

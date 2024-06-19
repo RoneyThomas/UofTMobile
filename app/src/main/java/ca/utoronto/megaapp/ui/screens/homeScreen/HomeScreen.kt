@@ -1,6 +1,5 @@
 package ca.utoronto.megaapp.ui.screens.homeScreen
 
-import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -26,10 +25,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -88,12 +90,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
@@ -128,9 +128,6 @@ fun HomeScreen(
     onNavigateToRssScreen: () -> Unit,
     onNavigateToSettingsScreen: () -> Unit
 ) {
-    // Sets the navigationBarColor, remove this in future when switching to dynamic theming
-    (LocalView.current.context as Activity).window.navigationBarColor = lightBlue.toArgb()
-
     val context = LocalContext.current
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
@@ -150,6 +147,7 @@ fun HomeScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.safeDrawing,
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             // For UiAutomator
@@ -239,7 +237,7 @@ fun HomeScreen(
         // The bookmark grid
         Box(
             modifier = Modifier
-                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
                 .background(
                     Brush.linearGradient(
@@ -251,7 +249,9 @@ fun HomeScreen(
                 )
         ) {
             Card(
-                modifier = Modifier.padding(12.dp, 12.dp, 12.dp, 12.dp),
+                modifier = Modifier
+                    .padding(12.dp, 12.dp, 12.dp, 0.dp)
+                    .padding(innerPadding),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White, //Card background color
                 )
@@ -362,6 +362,7 @@ fun HomeScreen(
                     colors = CardDefaults.cardColors(
                         containerColor = onSecondaryLight,
                     ), modifier = Modifier
+                        .padding(innerPadding)
                         .align(Alignment.BottomCenter)
                         .padding(12.dp)
                 ) {

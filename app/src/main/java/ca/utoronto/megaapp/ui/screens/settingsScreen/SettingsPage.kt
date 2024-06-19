@@ -1,6 +1,5 @@
 package ca.utoronto.megaapp.ui.screens.settingsScreen
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -27,9 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
@@ -46,9 +43,6 @@ import coil.compose.AsyncImage
 fun SettingsPage(
     appViewModel: AppViewModel, navController: NavHostController
 ) {
-    // Sets the navigationBarColor, remove this in future when switching to dynamic theming
-    (LocalView.current.context as Activity).window.navigationBarColor = Color.Transparent.toArgb()
-
     val context = LocalContext.current
     Scaffold(
         modifier = Modifier
