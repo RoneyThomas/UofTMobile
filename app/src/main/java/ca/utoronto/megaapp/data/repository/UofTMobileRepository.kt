@@ -1,8 +1,11 @@
 package ca.utoronto.megaapp.data.repository
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.data.entities.UofTMobile
 import kotlinx.serialization.json.Json
 import okhttp3.Call
@@ -23,9 +26,12 @@ class UofTMobileRepository(val context: Context, private val client: OkHttpClien
     var result: MutableLiveData<UofTMobile> = MutableLiveData<UofTMobile>()
 
     private val request: Request = Request.Builder()
-        .url("https://uoft-mobile.s3.ca-central-1.amazonaws.com/UofTMobile.JSON").build()
+        .url(context.resources.getString(R.string.jsonURL)).build()
 
     fun loadApps() {
+        if (isOnline(context)) {
+            loadLocalJson(result)
+        }
         client.newCall(request).enqueue(object : Callback {
             // On fail, loads json from assets folder
             override fun onFailure(call: Call, e: IOException) {
@@ -34,21 +40,49 @@ class UofTMobileRepository(val context: Context, private val client: OkHttpClien
                     is ConnectException -> Log.d(tag, "onFailure: No internet!")
                     else -> e.printStackTrace()
                 }
-                result.postValue(
-                    Json.decodeFromString(context.assets.open("UofTMobile.json").bufferedReader()
-                        .use { it.readText() }) as UofTMobile
-                )
+                loadLocalJson(result)
             }
 
             // Successful HTTP request
             override fun onResponse(call: Call, response: Response) {
                 response.use {
                     if (!response.isSuccessful) throw IOException("Unexpected code $response")
-                    val jsonResponse: UofTMobile =
-                        Json.decodeFromString<UofTMobile>(response.body!!.string())
-                    result.postValue(jsonResponse)
+                    try {
+                        val jsonResponse: UofTMobile =
+                            Json.decodeFromString<UofTMobile>(response.body!!.string())
+                        result.postValue(jsonResponse)
+                    } catch (e: Exception) {
+                        loadLocalJson(result)
+                    }
                 }
             }
         })
+    }
+
+    private fun loadLocalJson(result: MutableLiveData<UofTMobile>) {
+        result.postValue(
+            Json.decodeFromString(context.assets.open("UofTMobile.json").bufferedReader()
+                .use { it.readText() }) as UofTMobile
+        )
+    }
+
+    private fun isOnline(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        if (capabilities != null) {
+            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+                return true
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+                return true
+            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+                Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+                return true
+            }
+        }
+        return false
     }
 }
