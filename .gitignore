@@ -16,6 +16,8 @@
 /.idea/androidTestResultsUserPreferences.xml
 /.idea/inspectionProfiles
 /.idea/vcs.xml
+app/release
+app/nonMinifiedRelease
 
 .DS_Store
 /build

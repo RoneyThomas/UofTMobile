@@ -1,12 +1,13 @@
 package ca.utoronto.megaapp.data.entities
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import kotlinx.serialization.Serializable
 
 // Generated using https://app.quicktype.io/
 // Used for serializing json object from http request
 
-@Stable
+@Immutable
 @Serializable
 data class UofTMobile(
     val disabledFeatures: List<String>,
@@ -16,7 +17,7 @@ data class UofTMobile(
     val apps: List<App>
 )
 
-@Stable
+@Immutable
 @Serializable
 data class App(
     val name: String,
@@ -30,7 +31,7 @@ data class App(
     val urlOld: String? = null
 )
 
-@Stable
+@Immutable
 @Serializable
 data class Section(
     val index: Long,

@@ -241,7 +241,7 @@ class AppViewModel(private val application: Application) :
         resetToMandatoryApps()
         // Reset OkHTTP Cache
         client.cache?.evictAll()
-        // Reset Koil cache
+        // Reset Coil cache
         application.imageLoader.diskCache?.clear()
         application.imageLoader.memoryCache?.clear()
         showBookmarkInstructions.value = true
