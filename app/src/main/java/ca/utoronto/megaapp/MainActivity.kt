@@ -62,18 +62,13 @@ class MainActivity : ComponentActivity() {
 fun UofTMobileNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = "migrateBookmarks",
+    startDestination: String = "home",
     application: Application
 ) {
     val appViewModel = viewModel { AppViewModel(application) }
     NavHost(
         modifier = modifier, navController = navController, startDestination = startDestination
     ) {
-        composable("migrateBookmarks") {
-            UofTMobileTheme {
-                MigrateBookmarks(appViewModel, navController)
-            }
-        }
         composable("home") {
             UofTMobileTheme {
                 HomeScreen(
@@ -89,77 +84,5 @@ fun UofTMobileNavHost(
         composable("settings") {
             UofTMobileTheme { SettingsPage(appViewModel, navController) }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MigrateBookmarks(appViewModel: AppViewModel, navcontroller: NavHostController) {
-    val TAG = "MigrateBookmarks"
-    var currentProgress by remember { mutableStateOf(0f) }
-    var loading by remember { mutableStateOf(true) }
-    LaunchedEffect(key1 = Unit) {
-        loadProgress { progress ->
-            currentProgress = progress
-        }
-        loading = false
-    }
-    Scaffold(topBar = {
-        TopAppBar(
-            colors = topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.surface,
-                actionIconContentColor = MaterialTheme.colorScheme.surface
-            ),
-            title = {
-                AsyncImage(
-                    model = R.drawable.uoftcrst_stacked_white_webp,
-                    contentDescription = "University of Toronto Logo",
-                    modifier = Modifier.height(48.dp)
-                )
-            })
-    },
-        content = { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                extraLightBlue,
-                                lightBlue,
-                            ), start = Offset.Zero, end = Offset(0f, Float.POSITIVE_INFINITY)
-                        )
-                    )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .padding(start = 16.dp, end = 16.dp, top = 24.dp)
-                ) {
-                    Text(
-                        "Migrating your data",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                    if (loading) {
-                        LinearProgressIndicator(
-                            progress = { currentProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 12.dp),
-                            trackColor = extraLightBlue
-                        )
-                    } else {
-                        navcontroller.navigate("home")
-                    }
-                }
-            }
-        })
-}
-
-suspend fun loadProgress(updateProgress: (Float) -> Unit) {
-    for (i in 1..100) {
-        updateProgress(i.toFloat() / 100)
-        delay(32)
     }
 }
