@@ -15,3 +15,19 @@ This app is built using a combination of clean architecture principles, tailored
 1. If you check the json response, you will notice for some apps(e.g Quercus) the link is an app link. On Android before opening the app link you need to check if the app is installed on the device. Or else redirect the user to Google Play for the app listing, for that you need package namespace. Something to keep in mind is whenever there is a new addition of a new app with app link, make sure you are adding the package namespace in HomeScreen.kt, you will find a section with comment on where to add.
 2. Support for dynamic theme and dark theme. To do that use [Material theme generator](https://material-foundation.github.io/material-theme-builder/). All the assets in the drawables also need to get updated for light and dark theme or use SVG icon with tint.
 3. Currently the app uses OkHttp for network request and at the time of writing the coroutine support was experimental, once it's stable you can switch to it and move away from Livedata to Flow for the whole project.
+
+
+# **Third Party Notices**
+
+## **The following sets forth attribution notices for third party software that may be contained in portions of this product.**
+
+### **Apache License 2.0**
+
+The following components are licensed under the Apache License 2.0 reproduced below:
+
+* **AOSP**, Copyright 2021 The Android Open Source Project
+* **AndroidX**
+* **OkHttp**, Copyright 2019 Square, Inc.
+* **kotlinx.serialization**
+* **RSS-Parser**, Copyright 2016-2023 Marco Gomiero
+* **Coil**, Copyright 2023 Coil Contributors  

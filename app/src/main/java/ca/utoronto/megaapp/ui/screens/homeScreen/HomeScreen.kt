@@ -105,6 +105,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toOffset
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
 import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.theme.extraLightBlue
@@ -125,8 +126,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     appViewModel: AppViewModel,
-    onNavigateToRssScreen: () -> Unit,
-    onNavigateToSettingsScreen: () -> Unit
+    navController: NavHostController,
 ) {
     val context = LocalContext.current
 
@@ -225,7 +225,7 @@ fun HomeScreen(
                             DropdownMenuItem(text = { Text("Settings") },
                                 modifier = Modifier.testTag("settingMenu"),
                                 onClick = {
-                                    onNavigateToSettingsScreen()
+                                    navController.navigate("settings")
                                     overFlowMenuExpanded = false
                                 })
                         }
@@ -284,7 +284,7 @@ fun HomeScreen(
                                     modifier = Modifier.clickable {
                                         // When Eng. is clicked we need to show Eng RSS feed
                                         if (item.id == "newseng") {
-                                            onNavigateToRssScreen.invoke()
+                                            navController.navigate("rssScreen")
                                         } else {
                                             try {
                                                 val url = item.url
@@ -507,6 +507,7 @@ fun HomeScreen(
 }
 
 // For LazyVerticalGrid drag and drop
+// Based from https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation/integration-tests/foundation-demos/src/main/java/androidx/compose/foundation/demos/LazyColumnDragAndDropDemo.kt
 @Composable
 fun rememberGridDragDropState(
     gridState: LazyGridState, onMove: (Int, Int) -> Unit

@@ -88,6 +88,10 @@ fun SettingsPage(
 
             SettingsPageSection(mainText = "Version", subText = "Version 3.0, Build 1")
 
+            Text(text = "Open source license", modifier = Modifier.clickable {
+                navController.navigate("thirdPartyNotices")
+            })
+
             HorizontalDivider()
 
             SettingsPageSection(
@@ -141,11 +145,12 @@ fun SettingsPage(
 }
 
 @Composable
-private fun SettingsPageSection(mainText: String, subText: String) {
+private fun SettingsPageSection(mainText: String, subText: String, modifier: Modifier = Modifier) {
     Text(
         text = mainText,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.secondaryContainer
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        modifier = modifier
     )
     if (subText.isNotEmpty()) Text(text = subText)
 }
