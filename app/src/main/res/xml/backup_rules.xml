@@ -6,5 +6,7 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
-    <include domain="root" path="files/datastore"/>
+    <include
+        domain="root"
+        path="files/datastore" />
 </full-backup-content>

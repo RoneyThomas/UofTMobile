@@ -1,7 +1,6 @@
 package ca.utoronto.megaapp.data.entities
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.Stable
 import kotlinx.serialization.Serializable
 
 // Generated using https://app.quicktype.io/
