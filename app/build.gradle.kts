@@ -14,8 +14,8 @@ android {
         applicationId = "ca.utoronto.megaapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 40001
-        versionName = "4.0.1"
+        versionCode = 40003
+        versionName = "4.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -51,7 +51,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
     packaging {
         resources {
