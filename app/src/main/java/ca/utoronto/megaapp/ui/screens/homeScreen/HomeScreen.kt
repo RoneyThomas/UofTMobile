@@ -363,7 +363,8 @@ fun HomeScreen(
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = onSecondaryLight,
-                    ), modifier = Modifier
+                    ),
+                    modifier = Modifier
                         .padding(innerPadding)
                         .align(Alignment.BottomCenter)
                         .padding(12.dp)
