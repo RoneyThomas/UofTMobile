@@ -257,7 +257,7 @@ fun HomeScreen(
                 )
             ) {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(4),
+                    columns = GridCells.Adaptive(90.dp),
                     modifier = Modifier
                         .dragContainer(dragDropState)
                         .testTag("BookmarkList"),
@@ -265,6 +265,8 @@ fun HomeScreen(
                     contentPadding = PaddingValues(
                         start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                     ),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     itemsIndexed(items = bookmarksDTOList?.toList() ?: emptyList(),
                         key = { _, item -> item.id }) { index, item ->
@@ -430,74 +432,78 @@ fun HomeScreen(
                                     })
                             }
                             // LazyVerticalGrid bottom sheet
-                            LazyVerticalGrid(GridCells.Fixed(4), contentPadding = PaddingValues(
-                                start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
-                            ), content = {
-                                searchSections?.forEach { (key, value) ->
-                                    run {
-                                        item(span = { GridItemSpan(maxLineSpan) }, key = key) {
+                            LazyVerticalGrid(columns = GridCells.Adaptive(90.dp),
+                                contentPadding = PaddingValues(
+                                    start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
+                                ),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalArrangement = Arrangement.Center,
+                                content = {
+                                    searchSections?.forEach { (key, value) ->
+                                        run {
+                                            item(span = { GridItemSpan(maxLineSpan) }, key = key) {
 
-                                            Text(
-                                                text = key,
-                                                modifier = Modifier.padding(vertical = 12.dp),
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.secondaryContainer
-                                            )
-                                        }
-                                        items(value.apps.toList(), key = { it }) { item ->
-                                            Column(verticalArrangement = Arrangement.Center,
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.clickable {
-                                                    Log.d(
-                                                        "MainActivity",
-                                                        "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
-                                                    )
-                                                    appViewModel.addBookmark(jsonResponse.apps[item].id)
-                                                }) {
-                                                Box(
-                                                    Modifier
-                                                        .padding(8.dp, 8.dp, 8.dp, 24.dp)
-                                                        .size(52.dp)
-                                                        .background(
-                                                            Color(0xFF2F4675), CircleShape
-                                                        ), contentAlignment = Alignment.Center
-                                                ) {
-                                                    AsyncImage(
-                                                        model = iconResourceMap[jsonResponse?.apps!![item].imageLocalName.lowercase()],
-                                                        contentDescription = "University of Toronto Logo",
-                                                        contentScale = ContentScale.Fit,
-                                                        modifier = Modifier.height(32.dp),
-                                                    )
-                                                    if (bookmarksDTOList?.any { item1 -> item1.id == jsonResponse.apps[item].id } == true) {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .size(18.dp)
-                                                                .clip(CircleShape)
-                                                                .background(green)
-                                                                .align(
-                                                                    Alignment.TopEnd
+                                                Text(
+                                                    text = key,
+                                                    modifier = Modifier.padding(vertical = 12.dp),
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.secondaryContainer
+                                                )
+                                            }
+                                            items(value.apps.toList(), key = { it }) { item ->
+                                                Column(verticalArrangement = Arrangement.Center,
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    modifier = Modifier.clickable {
+                                                        Log.d(
+                                                            "MainActivity",
+                                                            "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
+                                                        )
+                                                        appViewModel.addBookmark(jsonResponse.apps[item].id)
+                                                    }) {
+                                                    Box(
+                                                        Modifier
+                                                            .padding(8.dp, 8.dp, 8.dp, 24.dp)
+                                                            .size(52.dp)
+                                                            .background(
+                                                                Color(0xFF2F4675), CircleShape
+                                                            ), contentAlignment = Alignment.Center
+                                                    ) {
+                                                        AsyncImage(
+                                                            model = iconResourceMap[jsonResponse?.apps!![item].imageLocalName.lowercase()],
+                                                            contentDescription = "University of Toronto Logo",
+                                                            contentScale = ContentScale.Fit,
+                                                            modifier = Modifier.height(32.dp),
+                                                        )
+                                                        if (bookmarksDTOList?.any { item1 -> item1.id == jsonResponse.apps[item].id } == true) {
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .size(18.dp)
+                                                                    .clip(CircleShape)
+                                                                    .background(green)
+                                                                    .align(
+                                                                        Alignment.TopEnd
+                                                                    )
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = Icons.Filled.Done,
+                                                                    tint = Color.White,
+                                                                    contentDescription = "Remove Bookmark",
                                                                 )
-                                                        ) {
-                                                            Icon(
-                                                                imageVector = Icons.Filled.Done,
-                                                                tint = Color.White,
-                                                                contentDescription = "Remove Bookmark",
-                                                            )
+                                                            }
                                                         }
                                                     }
+                                                    Text(
+                                                        fontWeight = FontWeight.Medium,
+                                                        text = jsonResponse?.apps!![item].name,
+                                                        textAlign = TextAlign.Center,
+                                                        color = Color.DarkGray,
+                                                        softWrap = true
+                                                    )
                                                 }
-                                                Text(
-                                                    fontWeight = FontWeight.Medium,
-                                                    text = jsonResponse?.apps!![item].name,
-                                                    textAlign = TextAlign.Center,
-                                                    color = Color.DarkGray,
-                                                    softWrap = true
-                                                )
                                             }
                                         }
                                     }
-                                }
-                            })
+                                })
                         }
                     }
                 }
