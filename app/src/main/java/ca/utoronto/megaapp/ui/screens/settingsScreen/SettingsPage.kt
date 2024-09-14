@@ -1,7 +1,9 @@
 package ca.utoronto.megaapp.ui.screens.settingsScreen
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.clickable
@@ -44,6 +46,13 @@ fun SettingsPage(
     appViewModel: AppViewModel, navController: NavHostController
 ) {
     val context = LocalContext.current
+    var version = ""
+    try {
+        val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        version = pInfo.versionName.toString()
+    } catch (e: PackageManager.NameNotFoundException) {
+        e.printStackTrace()
+    }
     Scaffold(
         modifier = Modifier
             // For UiAutomator
@@ -86,7 +95,7 @@ fun SettingsPage(
 
             HorizontalDivider()
 
-            SettingsPageSection(mainText = "Version", subText = "Version 3.0, Build 1")
+            SettingsPageSection(mainText = "Version", subText = version)
 
             Text(text = "Open source license", modifier = Modifier.clickable {
                 navController.navigate("thirdPartyNotices")
