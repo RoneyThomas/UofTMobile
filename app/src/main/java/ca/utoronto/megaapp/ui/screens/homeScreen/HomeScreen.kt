@@ -102,6 +102,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toOffset
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
@@ -347,6 +348,7 @@ fun HomeScreen(
                                     }
                                     Text(
                                         fontWeight = FontWeight.Medium,
+                                        fontSize = 13.sp,
                                         text = item.name,
                                         textAlign = TextAlign.Center,
                                         color = Color.DarkGray,
@@ -495,6 +497,7 @@ fun HomeScreen(
                                                     }
                                                     Text(
                                                         fontWeight = FontWeight.Medium,
+                                                        fontSize = 13.sp,
                                                         text = jsonResponse?.apps!![item].name,
                                                         textAlign = TextAlign.Center,
                                                         color = Color.DarkGray,
