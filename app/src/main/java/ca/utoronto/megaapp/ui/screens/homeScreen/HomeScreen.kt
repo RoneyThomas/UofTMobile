@@ -349,7 +349,7 @@ fun HomeScreen(
                                     }
                                     Text(
                                         fontWeight = FontWeight.Medium,
-                                        fontSize = 14.sp,
+                                        fontSize = 16.sp,
                                         text = item.name,
                                         textAlign = TextAlign.Center,
                                         color = Color.DarkGray,
@@ -500,7 +500,7 @@ fun HomeScreen(
                                                     }
                                                     Text(
                                                         fontWeight = FontWeight.Medium,
-                                                        fontSize = 14.sp,
+                                                        fontSize = 16.sp,
                                                         text = jsonResponse?.apps!![item].name,
                                                         textAlign = TextAlign.Center,
                                                         color = Color.DarkGray,
