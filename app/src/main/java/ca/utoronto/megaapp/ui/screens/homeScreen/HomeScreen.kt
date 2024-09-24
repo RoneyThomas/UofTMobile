@@ -99,6 +99,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -258,7 +259,7 @@ fun HomeScreen(
                 )
             ) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(90.dp),
+                    columns = GridCells.Adaptive(95.dp),
                     modifier = Modifier
                         .dragContainer(dragDropState)
                         .testTag("BookmarkList"),
@@ -348,11 +349,13 @@ fun HomeScreen(
                                     }
                                     Text(
                                         fontWeight = FontWeight.Medium,
-                                        fontSize = 13.sp,
+                                        fontSize = 14.sp,
                                         text = item.name,
                                         textAlign = TextAlign.Center,
                                         color = Color.DarkGray,
-                                        softWrap = true
+                                        softWrap = true,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
@@ -497,11 +500,13 @@ fun HomeScreen(
                                                     }
                                                     Text(
                                                         fontWeight = FontWeight.Medium,
-                                                        fontSize = 13.sp,
+                                                        fontSize = 14.sp,
                                                         text = jsonResponse?.apps!![item].name,
                                                         textAlign = TextAlign.Center,
                                                         color = Color.DarkGray,
-                                                        softWrap = true
+                                                        softWrap = true,
+                                                        maxLines = 2,
+                                                        overflow = TextOverflow.Clip
                                                     )
                                                 }
                                             }
