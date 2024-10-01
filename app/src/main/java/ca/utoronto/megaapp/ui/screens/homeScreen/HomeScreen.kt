@@ -70,6 +70,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -108,6 +109,7 @@ import androidx.compose.ui.unit.toOffset
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
+import androidx.window.core.layout.WindowWidthSizeClass
 import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.ui.screens.AppViewModel
 import ca.utoronto.megaapp.ui.theme.extraLightBlue
@@ -259,7 +261,9 @@ fun HomeScreen(
                 )
             ) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(95.dp),
+                    columns = if (currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) GridCells.Adaptive(
+                        95.dp
+                    ) else GridCells.Fixed(4),
                     modifier = Modifier
                         .dragContainer(dragDropState)
                         .testTag("BookmarkList"),
@@ -438,7 +442,9 @@ fun HomeScreen(
                                     })
                             }
                             // LazyVerticalGrid bottom sheet
-                            LazyVerticalGrid(columns = GridCells.Adaptive(90.dp),
+                            LazyVerticalGrid(columns = if (currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.COMPACT) GridCells.Adaptive(
+                                95.dp
+                            ) else GridCells.Fixed(4),
                                 contentPadding = PaddingValues(
                                     start = 8.dp, top = 12.dp, end = 8.dp, bottom = 12.dp
                                 ),

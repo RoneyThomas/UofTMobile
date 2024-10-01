@@ -14,8 +14,8 @@ android {
         applicationId = "ca.utoronto.megaapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 40004
-        versionName = "4.0.4"
+        versionCode = 40005
+        versionName = "4.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore.preferences.core)
     implementation(libs.androidx.profileinstaller)
+    implementation(libs.androidx.adaptive.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
