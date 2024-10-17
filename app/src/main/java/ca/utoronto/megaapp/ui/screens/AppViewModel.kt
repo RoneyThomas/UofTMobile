@@ -83,6 +83,20 @@ class AppViewModel(private val application: Application) :
     }
 
     fun getBookMarks(): LiveData<List<BookmarkDTO>> {
+        if (bookmarksDTOList.value != null)
+        {
+            // Check all mandatory apps included
+            jsonResponse.value?.mandatoryApps?.forEach { app ->
+                // Try to find value
+                try {
+                    bookmarksDTOList.value!!.first {it.id == app}
+                }
+                // If no mandatory app in bookmarks, add it
+                catch (e: NoSuchElementException){
+                    addBookmark(app)
+                }
+            }
+        }
         return bookmarksDTOList
     }
 
@@ -124,20 +138,25 @@ class AppViewModel(private val application: Application) :
                             if (updateList.isEmpty()) {
                                 val bookmarkList = it.split(",").toList()
                                 bookmarkList.forEach { id ->
-                                    val app = jsonResponse.value?.apps?.first { it.id == id }
-                                    if (app != null) {
-                                        updateList.add(
-                                            BookmarkDTO(
-                                                app.id,
-                                                app.name,
-                                                app.url,
-                                                app.imageURL.ifEmpty {
-                                                    app.imageLocalName.lowercase(
-                                                        Locale.getDefault()
-                                                    )
-                                                },
+                                    try {
+                                        val app = jsonResponse.value?.apps?.first { it.id == id }
+
+                                        if (app != null) {
+                                            updateList.add(
+                                                BookmarkDTO(
+                                                    app.id,
+                                                    app.name,
+                                                    app.url,
+                                                    app.imageURL.ifEmpty {
+                                                        app.imageLocalName.lowercase(
+                                                            Locale.getDefault()
+                                                        )
+                                                    },
+                                                )
                                             )
-                                        )
+                                        }
+                                    } catch (e: NoSuchElementException) {
+                                        Log.e("Bookmark Removed", id)
                                     }
                                 }
                                 bookmarksDTOList.postValue(updateList)
@@ -204,7 +223,7 @@ class AppViewModel(private val application: Application) :
 
     fun addBookmark(id: String) {
         // Only non-mandatory apps can be added
-        if (!isMandatory(id)) {
+//        if (!isMandatory(id)) {
             if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
                 updateList = bookmarksDTOList.value!!.toMutableList()
                 val bookmarkDTO = jsonResponse.value?.apps?.filter { it.id == id }?.map {
@@ -222,10 +241,10 @@ class AppViewModel(private val application: Application) :
                         savePreference()
                     }
                 }
-            } else {
+            } else if (!isMandatory(id)) {
                 removeBookmark(id)
             }
-        }
+//        }
     }
 
     private suspend fun savePreference() {

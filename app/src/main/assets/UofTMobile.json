@@ -34,11 +34,18 @@
     }
   ],
   "mandatoryApps": [
-    "maps",
-    "continuity",
-    "SystemStatus"
+    "maps", "continuity", "SystemStatus","tBucks"
   ],
   "apps": [
+    {
+      "name": "TBucks",
+      "id": "tBucks",
+      "sectionIndex": 0,
+      "url": "https://foodservices.utoronto.ca/meal-plans/buy-tbucks/",
+      "opensInApp": true,
+      "imageLocalName": "tBucks",
+      "imageURL": ""
+    },
     {
       "name": "Academic Continuity",
       "id": "continuity",
