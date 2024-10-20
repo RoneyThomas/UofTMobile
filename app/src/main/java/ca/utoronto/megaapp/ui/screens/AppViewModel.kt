@@ -223,7 +223,7 @@ class AppViewModel(private val application: Application) :
 
     fun addBookmark(id: String) {
         // Only non-mandatory apps can be added
-//        if (!isMandatory(id)) {
+        if (!isMandatory(id)) {
             if (bookmarksDTOList.value?.filter { it.id == id }.isNullOrEmpty()) {
                 updateList = bookmarksDTOList.value!!.toMutableList()
                 val bookmarkDTO = jsonResponse.value?.apps?.filter { it.id == id }?.map {
@@ -241,10 +241,10 @@ class AppViewModel(private val application: Application) :
                         savePreference()
                     }
                 }
-            } else if (!isMandatory(id)) {
+            } else  {
                 removeBookmark(id)
             }
-//        }
+        }
     }
 
     private suspend fun savePreference() {

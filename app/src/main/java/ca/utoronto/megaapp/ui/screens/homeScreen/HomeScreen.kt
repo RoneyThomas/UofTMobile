@@ -286,7 +286,8 @@ fun HomeScreen(
                             Surface(
                                 shadowElevation = elevation,
                                 color = Color.White,
-                                shape = RoundedCornerShape(8.dp)
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.padding(bottom = 12.dp)
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier.clickable {
@@ -296,9 +297,11 @@ fun HomeScreen(
                                         } else {
                                             try {
                                                 val url = item.url
-                                                val intent = CustomTabsIntent.Builder().build()
+                                                val intent = CustomTabsIntent.Builder()
+                                                    .setColorScheme(CustomTabsIntent.COLOR_SCHEME_DARK)
+                                                    .build()
                                                 intent.launchUrl(context, Uri.parse(url))
-                                            } catch (e: ActivityNotFoundException) {
+                                            } catch (_: ActivityNotFoundException) {
                                                 // If Quercus app is not installed then the intent cannot be handled, causing exception,
                                                 // In that case open Google Play to show Quercus app, so user can install it
                                                 // In future if the json contains links to other apps and if not installed on device
@@ -454,7 +457,6 @@ fun HomeScreen(
                                     searchSections?.forEach { (key, value) ->
                                         run {
                                             item(span = { GridItemSpan(maxLineSpan) }, key = key) {
-
                                                 Text(
                                                     text = key,
                                                     modifier = Modifier.padding(vertical = 12.dp),
@@ -465,13 +467,15 @@ fun HomeScreen(
                                             items(value.apps.toList(), key = { it }) { item ->
                                                 Column(verticalArrangement = Arrangement.Center,
                                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                                    modifier = Modifier.clickable {
-                                                        Log.d(
-                                                            "MainActivity",
-                                                            "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
-                                                        )
-                                                        appViewModel.addBookmark(jsonResponse.apps[item].id)
-                                                    }) {
+                                                    modifier = Modifier
+                                                        .clickable {
+                                                            Log.d(
+                                                                "MainActivity",
+                                                                "CenterAlignedTopAppBarExample: I am clicked in add" + jsonResponse?.apps!![item].id
+                                                            )
+                                                            appViewModel.addBookmark(jsonResponse.apps[item].id)
+                                                        }
+                                                        .padding(bottom = 16.dp)) {
                                                     Box(
                                                         Modifier
                                                             .padding(8.dp, 8.dp, 8.dp, 24.dp)
