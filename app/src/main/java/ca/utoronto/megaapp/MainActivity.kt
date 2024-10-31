@@ -52,8 +52,14 @@ fun UofTMobileNavHost(
                 )
             }
         }
-        composable("rssScreen") {
-            UofTMobileTheme { RssScreen(appViewModel, navController) }
+        composable("rssScreen/{feedUrl}") { backStackEntry ->
+            UofTMobileTheme {
+                RssScreen(
+                    appViewModel,
+                    navController,
+                    backStackEntry.arguments?.getString("feedUrl")!!
+                )
+            }
         }
         composable("settings") {
             UofTMobileTheme { SettingsPage(appViewModel, navController) }

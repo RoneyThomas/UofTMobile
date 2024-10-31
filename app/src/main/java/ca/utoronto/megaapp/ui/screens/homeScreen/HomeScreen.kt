@@ -123,6 +123,8 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
@@ -291,9 +293,19 @@ fun HomeScreen(
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier.clickable {
-                                        // When Eng. is clicked we need to show Eng RSS feed
-                                        if (item.id == "newseng") {
-                                            navController.navigate("rssScreen")
+                                        // When clicked micro-apps RSS feed
+                                        if (item.url.contains("micro-apps/")) {
+                                            navController.navigate(
+                                                "rssScreen/${
+                                                    URLEncoder.encode(
+                                                        "https://${
+                                                            item.url.removePrefix(
+                                                                "micro-apps/"
+                                                            )
+                                                        }", StandardCharsets.UTF_8.toString()
+                                                    )
+                                                }"
+                                            )
                                         } else {
                                             try {
                                                 val url = item.url

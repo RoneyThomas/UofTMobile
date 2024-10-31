@@ -16,7 +16,7 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import ca.utoronto.megaapp.data.entities.UofTMobile
-import ca.utoronto.megaapp.data.repository.EngRSSRepository
+import ca.utoronto.megaapp.data.repository.RSSRepository
 import ca.utoronto.megaapp.data.repository.UofTMobileRepository
 import ca.utoronto.megaapp.ui.BookmarkDTO
 import ca.utoronto.megaapp.ui.SectionsDTO
@@ -147,7 +147,8 @@ class AppViewModel(private val application: Application) :
                                 // Check all mandatory apps included
                                 jsonResponse.value?.mandatoryApps?.forEach { app ->
                                     if (updateList.none { it.id == app }) {
-                                        val newMandatoryApp = jsonResponse.value?.apps?.first { it.id == app }
+                                        val newMandatoryApp =
+                                            jsonResponse.value?.apps?.first { it.id == app }
                                         updateList.add(
                                             BookmarkDTO(
                                                 newMandatoryApp!!.id,
@@ -245,7 +246,7 @@ class AppViewModel(private val application: Application) :
                         savePreference()
                     }
                 }
-            } else  {
+            } else {
                 removeBookmark(id)
             }
         }
@@ -314,9 +315,9 @@ class AppViewModel(private val application: Application) :
     }
 
     // Used by the RssScreen
-    fun getRssFeed(): LiveData<RssChannel> {
+    fun getRssFeed(rssUrl: String): LiveData<RssChannel> {
         rssFeed = liveData {
-            val data = EngRSSRepository(client).rssChannel()
+            val data = RSSRepository(client).rssChannel(rssUrl)
             if (data != null) {
                 emit(data)
             }

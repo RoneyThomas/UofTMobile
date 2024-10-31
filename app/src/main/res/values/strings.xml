@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">U of T Mobile</string>
-    <string name="jsonURL">https://fail.uoft-mobile.s3.ca-central-1.amazonaws.com/UofTMobile.JSON</string>
+    <string name="jsonURL">https://uoft-mobile.s3.ca-central-1.amazonaws.com/UofTMobile.JSON</string>
 </resources>

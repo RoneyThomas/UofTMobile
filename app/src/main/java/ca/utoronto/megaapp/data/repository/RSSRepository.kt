@@ -7,16 +7,16 @@ import kotlinx.coroutines.coroutineScope
 import okhttp3.OkHttpClient
 
 // Repository responsible for getting Eng News RSS feed
-class EngRSSRepository(client: OkHttpClient) {
+class RSSRepository(client: OkHttpClient) {
     private val builder = RssParserBuilder(
         callFactory = client
     )
     private val rssParser = builder.build()
 
     @WorkerThread
-    suspend fun rssChannel(): RssChannel? = try {
+    suspend fun rssChannel(rssUrl: String): RssChannel? = try {
         coroutineScope {
-            rssParser.getRssChannel("https://news.engineering.utoronto.ca/feed/")
+            rssParser.getRssChannel(rssUrl)
         }
     } catch (e: Exception) {
         println("Error in fetching RSS Channel: $e")

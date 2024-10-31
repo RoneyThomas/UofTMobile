@@ -32,9 +32,9 @@ import ca.utoronto.megaapp.ui.util.rssDateFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RssScreen(appViewModel: AppViewModel, navController: NavHostController) {
+fun RssScreen(appViewModel: AppViewModel, navController: NavHostController, feedUrl: String) {
     val context = LocalContext.current
-    val rssFeed = appViewModel.getRssFeed().observeAsState().value
+    val rssFeed = appViewModel.getRssFeed(feedUrl).observeAsState().value
     Log.d("MainActivity", "RssScreen: " + rssFeed?.title)
     Scaffold(topBar = {
         TopAppBar(colors = topAppBarColors(
@@ -75,11 +75,13 @@ fun RssScreen(appViewModel: AppViewModel, navController: NavHostController) {
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 4.dp)
                         )
-                        Text(
-                            text = "by ${rssFeed.items[item].author}",
-                            fontWeight = FontWeight.Light,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
+                        if (rssFeed.items[item].author != null) {
+                            Text(
+                                text = "by ${rssFeed.items[item].author}",
+                                fontWeight = FontWeight.Light,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
                         val description = HtmlCompat.fromHtml(
                             rssFeed.items[item].description!!, HtmlCompat.FROM_HTML_MODE_LEGACY
                         ).toString().split("\n\n")[0]
