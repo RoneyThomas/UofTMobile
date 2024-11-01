@@ -125,7 +125,8 @@ class AppViewModel(private val application: Application) :
                                 val bookmarkList = it.split(",").toList()
                                 bookmarkList.forEach { id ->
                                     try {
-                                        val app = jsonResponse.value?.apps?.first { it.id == id }
+                                        val app =
+                                            jsonResponse.value?.apps?.firstOrNull { it.id == id }
                                         if (app != null) {
                                             updateList.add(
                                                 BookmarkDTO(
@@ -148,20 +149,22 @@ class AppViewModel(private val application: Application) :
                                 jsonResponse.value?.mandatoryApps?.forEach { app ->
                                     if (updateList.none { it.id == app }) {
                                         val newMandatoryApp =
-                                            jsonResponse.value?.apps?.first { it.id == app }
-                                        updateList.add(
-                                            BookmarkDTO(
-                                                newMandatoryApp!!.id,
-                                                newMandatoryApp.name,
-                                                newMandatoryApp.url,
-                                                newMandatoryApp.imageURL.ifEmpty {
-                                                    newMandatoryApp.imageLocalName.lowercase(
-                                                        Locale.getDefault()
-                                                    )
-                                                },
+                                            jsonResponse.value?.apps?.firstOrNull { it.id == app }
+                                        if (newMandatoryApp != null){
+                                            updateList.add(
+                                                BookmarkDTO(
+                                                    newMandatoryApp.id,
+                                                    newMandatoryApp.name,
+                                                    newMandatoryApp.url,
+                                                    newMandatoryApp.imageURL.ifEmpty {
+                                                        newMandatoryApp.imageLocalName.lowercase(
+                                                            Locale.getDefault()
+                                                        )
+                                                    },
+                                                )
                                             )
-                                        )
-                                        addBookmark(app)
+                                            addBookmark(app)
+                                        }
                                     }
                                 }
                                 bookmarksDTOList.postValue(updateList)
