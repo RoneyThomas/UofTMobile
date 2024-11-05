@@ -2,11 +2,11 @@ package ca.utoronto.megaapp.data.repository
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import ca.utoronto.megaapp.R
 import ca.utoronto.megaapp.data.entities.UofTMobile
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.Callback
@@ -29,34 +29,35 @@ class UofTMobileRepository(val context: Context, private val client: OkHttpClien
         .url(context.resources.getString(R.string.jsonURL)).build()
 
     fun loadApps() {
-        if (isOnline(context)) {
+        if (!isOnline(context)) {
             loadLocalJson(result)
-        }
-        client.newCall(request).enqueue(object : Callback {
-            // On fail, loads json from assets folder
-            override fun onFailure(call: Call, e: IOException) {
-                when (e) {
-                    is UnknownHostException -> Log.d(tag, "onFailure: Unknown host!")
-                    is ConnectException -> Log.d(tag, "onFailure: No internet!")
-                    else -> e.printStackTrace()
+        } else {
+            client.newCall(request).enqueue(object : Callback {
+                // On fail, loads json from assets folder
+                override fun onFailure(call: Call, e: IOException) {
+                    when (e) {
+                        is UnknownHostException -> Log.d(tag, "onFailure: Unknown host!")
+                        is ConnectException -> Log.d(tag, "onFailure: No internet!")
+                        else -> e.printStackTrace()
+                    }
+                    loadLocalJson(result)
                 }
-                loadLocalJson(result)
-            }
 
-            // Successful HTTP request
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
-                    try {
-                        val jsonResponse: UofTMobile =
-                            Json.decodeFromString<UofTMobile>(response.body!!.string())
-                        result.postValue(jsonResponse)
-                    } catch (e: Exception) {
-                        loadLocalJson(result)
+                // Successful HTTP request
+                override fun onResponse(call: Call, response: Response) {
+                    response.use {
+                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                        try {
+                            val jsonResponse: UofTMobile =
+                                Json.decodeFromString<UofTMobile>(response.body!!.string())
+                            result.postValue(jsonResponse)
+                        } catch (_: Exception) {
+                            loadLocalJson(result)
+                        }
                     }
                 }
-            }
-        })
+            })
+        }
     }
 
     private fun loadLocalJson(result: MutableLiveData<UofTMobile>) {
@@ -69,20 +70,7 @@ class UofTMobileRepository(val context: Context, private val client: OkHttpClien
     private fun isOnline(context: Context): Boolean {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val capabilities =
-            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        if (capabilities != null) {
-            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-                Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
-                return true
-            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
-                Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
-                return true
-            } else if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
-                Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
-                return true
-            }
-        }
-        return false
+        val activeNetwork = connectivityManager.activeNetwork
+        return activeNetwork != null
     }
 }

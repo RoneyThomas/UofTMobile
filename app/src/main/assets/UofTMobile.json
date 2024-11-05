@@ -34,18 +34,11 @@
     }
   ],
   "mandatoryApps": [
-    "maps", "continuity", "SystemStatus","tBucks"
+    "maps",
+    "continuity",
+    "SystemStatus"
   ],
   "apps": [
-    {
-      "name": "TBucks",
-      "id": "tBucks",
-      "sectionIndex": 0,
-      "url": "https://foodservices.utoronto.ca/meal-plans/buy-tbucks/",
-      "opensInApp": true,
-      "imageLocalName": "tBucks",
-      "imageURL": ""
-    },
     {
       "name": "Academic Continuity",
       "id": "continuity",
@@ -361,6 +354,16 @@
       "url": "https://www.youtube.com/uofteng",
       "opensInApp": true,
       "imageLocalName": "youtube",
+      "imageURL": ""
+    },
+    {
+      "name": "Economics Seminars",
+      "id": "ecofeed1",
+      "sectionIndex": 2,
+      "urlOld": "href=micro-apps/news/newsfeed-engi.html",
+      "url": "micro-apps/www.economics.utoronto.ca/index.php/index/research/seminarsRssTodayTxt",
+      "opensInApp": true,
+      "imageLocalName": "news",
       "imageURL": ""
     }
   ]
