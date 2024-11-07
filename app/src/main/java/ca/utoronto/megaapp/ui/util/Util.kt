@@ -7,9 +7,12 @@ fun rssDateFormatter(s: String): String {
         if (s[5] == '0') {
             return "${s.substring(8, 11)} ${s.substring(6, 7)}, ${s.substring(12, 16)}"
         }
+//      For engineering RSS feed
         return if (s.contains("+")){
             "${s.substring(8, 11)} ${s.substring(5, 7)}, ${s.substring(12, 16)}"
-        } else {
+        }
+//      For economics RSS feed
+        else {
             "${s.substring(7, 10)} ${s.substring(5, 7).trim()}, ${s.substring(11, 16)}"
         }
     }

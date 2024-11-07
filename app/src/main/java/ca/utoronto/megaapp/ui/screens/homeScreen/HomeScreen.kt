@@ -544,7 +544,6 @@ fun HomeScreen(
 }
 
 // For LazyVerticalGrid drag and drop
-// Based from https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation/integration-tests/foundation-demos/src/main/java/androidx/compose/foundation/demos/LazyColumnDragAndDropDemo.kt
 @Composable
 fun rememberGridDragDropState(
     gridState: LazyGridState, onMove: (Int, Int) -> Unit
