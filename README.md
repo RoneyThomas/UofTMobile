@@ -5,9 +5,9 @@
 This app is built using a combination of clean architecture principles, tailored to work effectively within the Android development environment. We've also followed Google's recommended app architecture guidelines and used MVVM. The app follows single activity with multiple composable.
 
 <p float="left">    
-<img src="https://github.com/UofTMADLab/UofTMobileAndroid/blob/master/docs/AppScreenShot1.jpg?raw=true" alt="app screenshot" width="150" />
-<img src="https://github.com/UofTMADLab/UofTMobileAndroid/blob/master/docs/AppScreenShot2.jpg?raw=true" alt="app screenshot" width="150" />
-<img src="https://github.com/UofTMADLab/UofTMobileAndroid/blob/master/docs/AppScreenShot3.jpg?raw=true" alt="app screenshot" width="150" />
+<img src="https://github.com/RoneyThomas/UofTMobileAndroid/blob/master/docs/AppScreenShot1.jpg?raw=true" alt="app screenshot" width="150" />
+<img src="https://github.com/RoneyThomas/UofTMobileAndroid/blob/master/docs/AppScreenShot2.jpg?raw=true" alt="app screenshot" width="150" />
+<img src="https://github.com/RoneyThomas/UofTMobileAndroid/blob/master/docs/AppScreenShot3.jpg?raw=true" alt="app screenshot" width="150" />
 </p>    
 
 ## Future improvements
