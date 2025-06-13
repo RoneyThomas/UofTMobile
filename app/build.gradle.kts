@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "ca.utoronto.megaapp"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "ca.utoronto.megaapp"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 40006
         versionName = "4.0.6"
 
@@ -88,7 +88,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    "baselineProfile"(project(":baselineprofile"))
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
